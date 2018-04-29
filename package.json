@@ -78,6 +78,7 @@
     "source"
   ],
   "dependencies": {
+    "superfly-timeline": "git+https://github.com/superflytv/supertimeline#dist",
     "tslib": "^1.9.0"
   },
   "standard-version": {
