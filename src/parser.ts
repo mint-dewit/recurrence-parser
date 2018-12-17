@@ -4,7 +4,7 @@ export class DateObj extends Date {
 	getWeek (): number {
 		let oneJan = new Date(this.getFullYear(),0,1)
 		let millisecsInDay = 86400000
-		return Math.ceil((((this.getTime() - oneJan.getTime()) / millisecsInDay) + oneJan.getDay() + 1 ) / 7)
+		return Math.ceil((((this.getTime() - oneJan.getTime()) / millisecsInDay) + oneJan.getDay() + 1) / 7)
 	}
 
 	setWeek (week: number): DateObj {
@@ -125,7 +125,7 @@ export class RecurrenceParser {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
 			const contents = this.getFolderContents(element.path!)
 			for (const clip of contents) {
-				addFile({...element, path: clip})
+				addFile({ ...element, path: clip })
 			}
 		}
 		const addGroup = (element: ScheduleElement) => {
@@ -167,7 +167,6 @@ export class RecurrenceParser {
 
 	private getFirstExecution (object: ScheduleElement, now: DateObj): number {
 		let firstDay
-		let firstWeek
 		let firstDateRange: Array<DateObj>
 		let firstTime
 		let outOfRange = false
@@ -194,11 +193,7 @@ export class RecurrenceParser {
 		}
 		let getNextWeek = () => {
 			for (let week of object.weeks!) {
-				if (week === start.getWeek()) {
-					firstWeek = week
-					// start remains the same
-				} else if (week > start.getWeek()) {
-					firstWeek = week
+				if (week > start.getWeek()) {
 					start = new DateObj().setWeek(week)
 				}
 			}
