@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.1.0"></a>
+# 0.1.0 (2018-12-17)
+
+
+### Bug Fixes
+
+* improved logging, pass midnight in algo ([f4c1417](https://github.com/baltedewit/recurrence-parser/commit/f4c1417))
+
+
+### Features
+
+* Basic Parser ([3e5fb91](https://github.com/baltedewit/recurrence-parser/commit/3e5fb91))
+
+
+
 <a name="0.5.1"></a>
 ## [0.5.1](https://bitbucket.org/superflytv/node-boilerplate/compare/0.5.0...0.5.1) (2018-02-25)
 
