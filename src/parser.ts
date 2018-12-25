@@ -38,6 +38,12 @@ export interface ScheduleElement {
 	children?: Array<ScheduleElement>
 }
 
+export interface BuildTimelineResult {
+	start: number
+	end: number
+	timeline: Array<TimelineObject>
+}
+
 export class RecurrenceParser {
 	schedule: Array<ScheduleElement>
 	curDate: () => DateObj
@@ -45,6 +51,7 @@ export class RecurrenceParser {
 	getMediaDuration: (name: string) => number
 	getFolderContents: (name: string) => Array<string>
 	logLevel = 1
+	LLayer = 'PLAYOUT'
 
 	constructor (getMediaDuration: (name: string) => number, getFolderContents: (name: string) => Array<string>, curDate?: () => DateObj, externalLog?: (arg1: any, arg2?: any, arg3?: any) => void) {
 		if (curDate) {
@@ -65,20 +72,22 @@ export class RecurrenceParser {
 		this.log('Initialized the recurrence parser')
 	}
 
-	getNextTimeline (datetime?: DateObj): Array<TimelineObject> {
+	getNextTimeline (datetime?: DateObj): BuildTimelineResult {
 		if (!datetime) {
 			datetime = this.curDate()
 		}
 		this.log('Getting first timeline after', datetime.toLocaleString())
 
 		let firstExecution = Number.MAX_SAFE_INTEGER
-		let firstElement: ScheduleElement | undefined
-		let recurseElement = (el: ScheduleElement, start: DateObj) => {
+		let firstElement: Array<ScheduleElement> = []
+		let recurseElement = (el: ScheduleElement, start: DateObj, isTopLevel = false) => {
 			let executionTime = this.getFirstExecution(el, start)
 			if (this.logLevel === LogLevel.Debug) this.log(`Execution time for ${el.path || el._id || 'unknown'} is ${new Date(executionTime)}`)
 			if (executionTime < firstExecution) {
-				firstElement = el
+				firstElement = [ el ]
 				firstExecution = executionTime
+			} else if (executionTime === firstExecution && isTopLevel) {
+				firstElement.push(el)
 			}
 			if (el.children) {
 				for (let child of el.children) {
@@ -88,23 +97,47 @@ export class RecurrenceParser {
 		}
 
 		for (const child of this.schedule) {
-			recurseElement(child, datetime)
+			recurseElement(child, datetime, true)
 		}
 
 		if (!firstElement) {
 			this.log('Did not find any executions')
-			return []
+			return { start: datetime.getTime(), end: datetime.getTime(), timeline: [] }
 		}
 
-		return this.buildTimeline(firstElement, firstExecution)
+		let start: number = 0
+		let end: number = 0
+		let timeline: Array<TimelineObject> = []
+
+		for (const el of firstElement) {
+			const res = this.buildTimeline(el, firstExecution)
+			if (!start || !end) {
+				start = res.start
+				end = res.end
+				timeline = res.timeline
+			} else {
+				end += (res.end - res.start)
+				res.timeline[0].trigger = {
+					type: Enums.TriggerType.TIME_RELATIVE,
+					value: `#${timeline[timeline.length - 1].id}.end`
+				}
+				timeline = [ ...timeline, ...res.timeline ]
+			}
+		}
+
+		return { start, end, timeline }
 	}
 
-	buildTimeline (element: ScheduleElement, firstExecution: number): Array<TimelineObject> {
+	buildTimeline (element: ScheduleElement, firstExecution: number): BuildTimelineResult {
 		const timeline: Array<TimelineObject> = []
+		let end = firstExecution
 		const addFile = (element: ScheduleElement) => {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
+			const duration = this.getMediaDuration(element.path!) * 1000
+			if (duration === 0) return // media file not found.
+			end += duration
 			timeline.push({
-				id: element._id || Math.random().toString(35).substr(2, 7),
+				id: Math.random().toString(35).substr(2, 7),
 				trigger: timeline.length === 0 ? {
 					type: Enums.TriggerType.TIME_ABSOLUTE,
 					value: firstExecution
@@ -112,11 +145,13 @@ export class RecurrenceParser {
 					type: Enums.TriggerType.TIME_RELATIVE,
 					value: `#${timeline[timeline.length - 1].id}.end`
 				},
-				duration: this.getMediaDuration(element.path!), // I need the media library!
-				LLayer: 'PLAYOUT',
+				duration, // I need the media library!
+				LLayer: this.LLayer,
 				content: {
 					type: 'media',
-					file: element.path
+					attributes: {
+						file: element.path
+					}
 				},
 				priority: element.priority || 100
 			})
@@ -154,7 +189,7 @@ export class RecurrenceParser {
 
 		this.log('Built timeline: ', JSON.stringify(timeline))
 
-		return timeline
+		return { start: firstExecution, end, timeline }
 	}
 
 	private _curDate () {
