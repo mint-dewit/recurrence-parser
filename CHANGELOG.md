@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.2.0"></a>
+# [0.2.0](https://github.com/baltedewit/recurrence-parser/compare/0.1.0...0.2.0) (2018-12-27)
+
+
+### Features
+
+* add muted property onto timeline ([95deb46](https://github.com/baltedewit/recurrence-parser/commit/95deb46))
+* improve interfaces ([5b0afd9](https://github.com/baltedewit/recurrence-parser/commit/5b0afd9))
+
+
+
 <a name="0.1.0"></a>
 # 0.1.0 (2018-12-17)
 
