@@ -149,9 +149,13 @@ export class RecurrenceParser {
 				LLayer: this.LLayer,
 				content: {
 					type: 'media',
+					muted: element.audio === false ? true : false,
 					attributes: {
 						file: element.path
-					}
+					},
+					mixer: element.audio === false ? {
+						volume: 0
+					} : undefined
 				},
 				priority: element.priority || 100
 			})
