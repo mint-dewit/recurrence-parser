@@ -8,8 +8,9 @@ export class DateObj extends Date {
 	}
 
 	setWeek (week: number): DateObj {
-		this.setFullYear(this.getFullYear(), 1, 1)
-		this.setDate(week * 7 - 6)
+		this.setFullYear(this.getFullYear(), 0, 1)
+        this.setDate(-this.getDay() + 1)
+		this.setDate((this.getDate() - 1) + week * 7 - 6)
 		return this
 	}
 }
@@ -83,10 +84,10 @@ export class RecurrenceParser {
 		let recurseElement = (el: ScheduleElement, start: DateObj, isTopLevel = false) => {
 			let executionTime = this.getFirstExecution(el, start)
 			if (this.logLevel === LogLevel.Debug) this.log(`Execution time for ${el.path || el._id || 'unknown'} is ${new Date(executionTime)}`)
-			if (executionTime < firstExecution) {
+			if (executionTime < firstExecution && !!el.times) {
 				firstElement = [ el ]
 				firstExecution = executionTime
-			} else if (executionTime === firstExecution && isTopLevel) {
+			} else if (executionTime === firstExecution && isTopLevel && !!el.times) {
 				firstElement.push(el)
 			}
 			if (el.children) {
@@ -100,7 +101,7 @@ export class RecurrenceParser {
 			recurseElement(child, datetime, true)
 		}
 
-		if (!firstElement) {
+		if (firstElement.length === 0) {
 			this.log('Did not find any executions')
 			return { start: datetime.getTime(), end: datetime.getTime(), timeline: [] }
 		}
@@ -111,11 +112,11 @@ export class RecurrenceParser {
 
 		for (const el of firstElement) {
 			const res = this.buildTimeline(el, firstExecution)
-			if (!start || !end) {
+			if (!start || !end || !timeline.length) {
 				start = res.start
 				end = res.end
 				timeline = res.timeline
-			} else {
+			} else if (res.timeline.length) {
 				end += (res.end - res.start)
 				res.timeline[0].trigger = {
 					type: Enums.TriggerType.TIME_RELATIVE,
@@ -213,22 +214,26 @@ export class RecurrenceParser {
 		let start = now
 
 		let getNextDateRange = () => {
+			let hasFound = false
 			for (let dates of object.dates!) {
 				const begin = new DateObj(dates[0])
 				const end = new DateObj(dates[1])
 				if (begin <= start && end >= start) {
 					firstDateRange = [ new DateObj(start.toLocaleDateString()), new DateObj(end.toLocaleDateString()) ]
 					start = firstDateRange[0]
+					hasFound = true
 					break
 				} else if (begin >= start) {
 					firstDateRange = [ begin, end ]
 					start = firstDateRange[0]
+					hasFound = true
 					break
 				}
 			}
-			// we've recursed through everything and no date was found:
-			if (this.logLevel === LogLevel.Debug) console.log(`WARNING: No execution time was found for ${object.path || object._id || 'unkown'}!`)
-			outOfRange = true
+			if (!hasFound) { // we've recursed through everything and no date was found:
+				if (this.logLevel === LogLevel.Debug) console.log(`WARNING: No execution time was found for ${object.path || object._id || 'unkown'}!`)
+				outOfRange = true // @todo: this breaks
+			}
 		}
 		let getNextWeek = () => {
 			for (let week of object.weeks!) {
@@ -248,6 +253,7 @@ export class RecurrenceParser {
 				if (day === start.getDay()) {
 					firstDay = start.setWeek(start.getWeek())
 					firstDay.setMilliseconds(day * 86400000)
+					break
 				} else if (day > start.getDay()) {
 					firstDay = start.setWeek(start.getWeek())
 					firstDay.setMilliseconds(day * 86400000)
