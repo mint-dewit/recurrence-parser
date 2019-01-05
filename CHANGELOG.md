@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.2.3"></a>
+## [0.2.3](https://github.com/baltedewit/recurrence-parser/compare/0.2.2...0.2.3) (2019-01-05)
+
+
+### Bug Fixes
+
+* midnight of the first day of the week is the next week ([18ffe1f](https://github.com/baltedewit/recurrence-parser/commit/18ffe1f))
+
+
+
 <a name="0.2.2"></a>
 ## [0.2.2](https://github.com/baltedewit/recurrence-parser/compare/0.2.1...0.2.2) (2019-01-05)
 
