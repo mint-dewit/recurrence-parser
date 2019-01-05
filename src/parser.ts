@@ -4,7 +4,7 @@ export class DateObj extends Date {
 	getWeek (): number {
 		let oneJan = new Date(this.getFullYear(),0,1)
 		let millisecsInDay = 86400000
-		return Math.ceil((((this.getTime() - oneJan.getTime()) / millisecsInDay) + oneJan.getDay()) / 7)
+		return Math.ceil(Math.floor(((this.getTime() - oneJan.getTime()) / millisecsInDay) + oneJan.getDay() + 1) / 7)
 	}
 
 	setWeek (week: number): DateObj {
