@@ -288,6 +288,10 @@ export class RecurrenceParser {
 		if (object.days) {
 			object.days.sort()
 			getNextDay()
+			if (!new Set(object.days).has(start.getDay())) {
+				start.setWeek(start.getWeek() + 1)
+				return this.getFirstExecution(object, start)
+			}
 			if (this.logLevel === LogLevel.Debug) console.log(`Parsed days for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 		}
 
