@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.2.4"></a>
+## [0.2.4](https://github.com/baltedewit/recurrence-parser/compare/0.2.3...0.2.4) (2019-01-06)
+
+
+### Bug Fixes
+
+* if there are no days of the week left, wrap around to next week ([aac2f3b](https://github.com/baltedewit/recurrence-parser/commit/aac2f3b))
+* ignore empty arrays in the schedule ([11f2a0b](https://github.com/baltedewit/recurrence-parser/commit/11f2a0b))
+* root level elements keep their own starttime ([0933f0e](https://github.com/baltedewit/recurrence-parser/commit/0933f0e))
+
+
+
 <a name="0.2.3"></a>
 ## [0.2.3](https://github.com/baltedewit/recurrence-parser/compare/0.2.2...0.2.3) (2019-01-05)
 
