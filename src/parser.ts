@@ -272,20 +272,20 @@ export class RecurrenceParser {
 			}
 		}
 
-		if (object.dates) {
+		if (object.dates && object.dates.length > 0) {
 			object.dates.sort()
 			getNextDateRange()
 			// what to do when all is in the past?
 			if (this.logLevel === LogLevel.Debug) console.log(`Parsed date ranges for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 		}
 
-		if (object.weeks) {
+		if (object.weeks && object.weeks.length > 0) {
 			object.weeks.sort()
 			getNextWeek()
 			if (this.logLevel === LogLevel.Debug) console.log(`Parsed weeks for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 		}
 
-		if (object.days) {
+		if (object.days && object.days.length > 0) {
 			object.days.sort()
 			getNextDay()
 			if (!new Set(object.days).has(start.getDay())) {
@@ -295,7 +295,7 @@ export class RecurrenceParser {
 			if (this.logLevel === LogLevel.Debug) console.log(`Parsed days for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 		}
 
-		if (object.times) {
+		if (object.times && object.times.length > 0) {
 			object.times.sort()
 			for (let time of object.times) {
 				let date = this.timeToDate(time, start)
