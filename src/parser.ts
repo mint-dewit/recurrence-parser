@@ -98,7 +98,7 @@ export class RecurrenceParser {
 		}
 
 		for (const child of this.schedule) {
-			recurseElement(child, datetime, true)
+			recurseElement(child, new DateObj(datetime), true)
 		}
 
 		if (firstElement.length === 0) {
