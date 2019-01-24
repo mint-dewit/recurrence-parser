@@ -130,6 +130,7 @@ export class RecurrenceParser {
 	}
 
 	buildTimeline (element: ScheduleElement, firstExecution: number): BuildTimelineResult {
+		if (isNaN(new Date(firstExecution).valueOf())) return { start: Date.now(), end: Date.now(), timeline: [] }
 		const timeline: Array<TimelineObject> = []
 		let end = firstExecution
 		const addFile = (element: ScheduleElement) => {
@@ -206,6 +207,7 @@ export class RecurrenceParser {
 	}
 
 	private getFirstExecution (object: ScheduleElement, now: DateObj): number {
+		if (isNaN(now.valueOf())) throw new Error("Parameter now is an invalid date")
 		let firstDay
 		let firstDateRange: Array<DateObj>
 		let firstTime
@@ -220,7 +222,6 @@ export class RecurrenceParser {
 				const end = new DateObj(dates[1])
 				if (begin <= start && end >= start) {
 					firstDateRange = [ new DateObj(start.toLocaleDateString()), new DateObj(end.toLocaleDateString()) ]
-					start = firstDateRange[0]
 					hasFound = true
 					break
 				} else if (begin >= start) {
@@ -244,6 +245,7 @@ export class RecurrenceParser {
 			if (firstDateRange) {
 				while (start > firstDateRange[1]) {
 					getNextDateRange()
+					if (outOfRange) return
 					getNextWeek()
 				}
 			}
@@ -264,6 +266,7 @@ export class RecurrenceParser {
 			if (firstDateRange) {
 				while (start > firstDateRange[1]) {
 					getNextDateRange()
+					if (outOfRange) return
 					if (object.weeks) {
 						getNextWeek()
 					}
@@ -275,6 +278,7 @@ export class RecurrenceParser {
 		if (object.dates && object.dates.length > 0) {
 			object.dates.sort()
 			getNextDateRange()
+			if (outOfRange) return Number.MAX_SAFE_INTEGER
 			// what to do when all is in the past?
 			if (this.logLevel === LogLevel.Debug) console.log(`Parsed date ranges for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 		}
