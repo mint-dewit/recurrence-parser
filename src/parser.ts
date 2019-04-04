@@ -10,7 +10,9 @@ export class DateObj extends Date {
 		t -= oneJan.getTime() // remove all before the start of the year (t = ms elapsed this year)
 		t /= millisecsInDay // divide by ms/day => t = days elapsed this year
 		t += oneJan.getDay() + 1 // account for the fact that newyears don't always start on the first day of week
-		t /= 7 // divide by 7 to get the week no
+        t = Math.floor(t)
+        t /= 7 // divide by 7 to get the week no
+        t = Math.ceil(t)
 
 		return t
 	}
