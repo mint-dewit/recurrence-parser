@@ -17,7 +17,7 @@ export class DateObj extends Date {
 
 	setWeek (week: number): DateObj {
 		this.setFullYear(this.getFullYear(), 0, 1)
-        this.setDate(-this.getDay() + 1)
+		this.setDate(-this.getDay() + 1)
 		this.setDate((this.getDate() - 1) + week * 7 - 6)
 		return this
 	}
@@ -92,10 +92,10 @@ export class RecurrenceParser {
 		let recurseElement = (el: ScheduleElement, start: DateObj, isTopLevel = false) => {
 			let executionTime = this.getFirstExecution(el, start)
 			if (this.logLevel === LogLevel.Debug) this.log(`Execution time for ${el.path || el._id || 'unknown'} is ${new Date(executionTime)}`)
-			if (executionTime < firstExecution && !!el.times) {
+			if (executionTime < firstExecution && el.times) {
 				firstElement = [ el ]
 				firstExecution = executionTime
-			} else if (executionTime === firstExecution && isTopLevel && !!el.times) {
+			} else if (executionTime === firstExecution && isTopLevel && el.times) {
 				firstElement.push(el)
 			}
 			if (el.children) {
@@ -215,7 +215,7 @@ export class RecurrenceParser {
 	}
 
 	private getFirstExecution (object: ScheduleElement, now: DateObj): number {
-		if (isNaN(now.valueOf())) throw new Error("Parameter now is an invalid date")
+		if (isNaN(now.valueOf())) throw new Error('Parameter now is an invalid date')
 		let firstDay
 		let firstDateRange: Array<DateObj>
 		let firstTime
