@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.2.6](https://github.com/baltedewit/recurrence-parser/compare/0.2.5...0.2.6) (2019-04-04)
+
+
+### Bug Fixes
+
+* getWeek should account for timezones ([828d34a](https://github.com/baltedewit/recurrence-parser/commit/828d34a))
+
+
+
 <a name="0.2.5"></a>
 ## [0.2.5](https://github.com/baltedewit/recurrence-parser/compare/0.2.4...0.2.5) (2019-01-24)
 
