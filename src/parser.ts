@@ -1,4 +1,4 @@
-import { TimelineObject, Enums } from 'superfly-timeline'
+import { TimelineObject } from 'superfly-timeline'
 
 export class DateObj extends Date {
 	getWeek (): number {
@@ -62,7 +62,7 @@ export class RecurrenceParser {
 	getMediaDuration: (name: string) => number
 	getFolderContents: (name: string) => Array<string>
 	logLevel = 1
-	LLayer = 'PLAYOUT'
+	layer = 'PLAYOUT'
 
 	constructor (getMediaDuration: (name: string) => number, getFolderContents: (name: string) => Array<string>, curDate?: () => DateObj, externalLog?: (arg1: any, arg2?: any, arg3?: any) => void) {
 		if (curDate) {
@@ -128,9 +128,8 @@ export class RecurrenceParser {
 				timeline = res.timeline
 			} else if (res.timeline.length) {
 				end += (res.end - res.start)
-				res.timeline[0].trigger = {
-					type: Enums.TriggerType.TIME_RELATIVE,
-					value: `#${timeline[timeline.length - 1].id}.end`
+				res.timeline[0].enable = {
+					start: `#${timeline[timeline.length - 1].id}.end`
 				}
 				timeline = [ ...timeline, ...res.timeline ]
 			}
@@ -150,15 +149,14 @@ export class RecurrenceParser {
 			end += duration
 			timeline.push({
 				id: Math.random().toString(35).substr(2, 7),
-				trigger: timeline.length === 0 ? {
-					type: Enums.TriggerType.TIME_ABSOLUTE,
-					value: firstExecution
+				enable: timeline.length === 0 ? {
+					start: firstExecution,
+					duration
 				} : {
-					type: Enums.TriggerType.TIME_RELATIVE,
-					value: `#${timeline[timeline.length - 1].id}.end`
+					start: `#${timeline[timeline.length - 1].id}.end`,
+					duration
 				},
-				duration, // I need the media library!
-				LLayer: this.LLayer,
+				layer: this.layer,
 				content: {
 					type: 'media',
 					muted: element.audio === false ? true : false,
@@ -299,7 +297,7 @@ export class RecurrenceParser {
 			if (this.logLevel === LogLevel.Debug) console.log(`Parsed weeks for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 		}
 
-		if (object.days && object.days.length > 0) {
+		if (object.days && object.days.length > 0 && object.days.length !== 7) {
 			object.days.sort()
 			getNextDay()
 			if (!new Set(object.days).has(start.getDay())) {
