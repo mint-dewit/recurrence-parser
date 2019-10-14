@@ -297,7 +297,7 @@ export class RecurrenceParser {
 			if (this.logLevel === LogLevel.Debug) console.log(`Parsed weeks for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 		}
 
-		if (object.days && object.days.length > 0) {
+		if (object.days && object.days.length > 0 && object.days.length !== 7) {
 			object.days.sort()
 			getNextDay()
 			if (!new Set(object.days).has(start.getDay())) {
