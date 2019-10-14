@@ -2,6 +2,87 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.2.7](https://github.com/baltedewit/recurrence-parser/compare/0.2.6...0.2.7) (2019-04-04)
+
+
+### Bug Fixes
+
+* rounding error causing inf loop ([8352643](https://github.com/baltedewit/recurrence-parser/commit/8352643))
+
+
+
+## [0.2.6](https://github.com/baltedewit/recurrence-parser/compare/0.2.5...0.2.6) (2019-04-04)
+
+
+### Bug Fixes
+
+* getWeek should account for timezones ([828d34a](https://github.com/baltedewit/recurrence-parser/commit/828d34a))
+
+
+
+<a name="0.2.5"></a>
+## [0.2.5](https://github.com/baltedewit/recurrence-parser/compare/0.2.4...0.2.5) (2019-01-24)
+
+
+### Bug Fixes
+
+* date ranges ([80478b1](https://github.com/baltedewit/recurrence-parser/commit/80478b1))
+
+
+
+<a name="0.2.4"></a>
+## [0.2.4](https://github.com/baltedewit/recurrence-parser/compare/0.2.3...0.2.4) (2019-01-06)
+
+
+### Bug Fixes
+
+* if there are no days of the week left, wrap around to next week ([aac2f3b](https://github.com/baltedewit/recurrence-parser/commit/aac2f3b))
+* ignore empty arrays in the schedule ([11f2a0b](https://github.com/baltedewit/recurrence-parser/commit/11f2a0b))
+* root level elements keep their own starttime ([0933f0e](https://github.com/baltedewit/recurrence-parser/commit/0933f0e))
+
+
+
+<a name="0.2.3"></a>
+## [0.2.3](https://github.com/baltedewit/recurrence-parser/compare/0.2.2...0.2.3) (2019-01-05)
+
+
+### Bug Fixes
+
+* midnight of the first day of the week is the next week ([18ffe1f](https://github.com/baltedewit/recurrence-parser/commit/18ffe1f))
+
+
+
+<a name="0.2.2"></a>
+## [0.2.2](https://github.com/baltedewit/recurrence-parser/compare/0.2.1...0.2.2) (2019-01-05)
+
+
+### Bug Fixes
+
+* correct day of the week parsing ([7b3daa0](https://github.com/baltedewit/recurrence-parser/commit/7b3daa0))
+
+
+
+<a name="0.2.1"></a>
+## [0.2.1](https://github.com/baltedewit/recurrence-parser/compare/0.2.0...0.2.1) (2019-01-04)
+
+
+### Bug Fixes
+
+* various fixes in the parser logic for days and empty timelines ([2f14137](https://github.com/baltedewit/recurrence-parser/commit/2f14137))
+
+
+
+<a name="0.2.0"></a>
+# [0.2.0](https://github.com/baltedewit/recurrence-parser/compare/0.1.0...0.2.0) (2018-12-27)
+
+
+### Features
+
+* add muted property onto timeline ([95deb46](https://github.com/baltedewit/recurrence-parser/commit/95deb46))
+* improve interfaces ([5b0afd9](https://github.com/baltedewit/recurrence-parser/commit/5b0afd9))
+
+
+
 <a name="0.1.0"></a>
 # 0.1.0 (2018-12-17)
 

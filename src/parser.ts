@@ -4,12 +4,23 @@ export class DateObj extends Date {
 	getWeek (): number {
 		let oneJan = new Date(this.getFullYear(),0,1)
 		let millisecsInDay = 86400000
-		return Math.ceil((((this.getTime() - oneJan.getTime()) / millisecsInDay) + oneJan.getDay() + 1) / 7)
+
+		let t = this.getTime() // current time
+		t -= this.getTimezoneOffset() * 60000 // adjust for timezone
+		t -= oneJan.getTime() // remove all before the start of the year (t = ms elapsed this year)
+		t /= millisecsInDay // divide by ms/day => t = days elapsed this year
+		t += oneJan.getDay() + 1 // account for the fact that newyears don't always start on the first day of week
+        t = Math.floor(t)
+        t /= 7 // divide by 7 to get the week no
+        t = Math.ceil(t)
+
+		return t
 	}
 
 	setWeek (week: number): DateObj {
-		this.setFullYear(this.getFullYear(), 1, 1)
-		this.setDate(week * 7 - 6)
+		this.setFullYear(this.getFullYear(), 0, 1)
+		this.setDate(-this.getDay() + 1)
+		this.setDate((this.getDate() - 1) + week * 7 - 6)
 		return this
 	}
 }
@@ -83,10 +94,10 @@ export class RecurrenceParser {
 		let recurseElement = (el: ScheduleElement, start: DateObj, isTopLevel = false) => {
 			let executionTime = this.getFirstExecution(el, start)
 			if (this.logLevel === LogLevel.Debug) this.log(`Execution time for ${el.path || el._id || 'unknown'} is ${new Date(executionTime)}`)
-			if (executionTime < firstExecution) {
+			if (executionTime < firstExecution && el.times) {
 				firstElement = [ el ]
 				firstExecution = executionTime
-			} else if (executionTime === firstExecution && isTopLevel) {
+			} else if (executionTime === firstExecution && isTopLevel && el.times) {
 				firstElement.push(el)
 			}
 			if (el.children) {
@@ -97,10 +108,10 @@ export class RecurrenceParser {
 		}
 
 		for (const child of this.schedule) {
-			recurseElement(child, datetime, true)
+			recurseElement(child, new DateObj(datetime), true)
 		}
 
-		if (!firstElement) {
+		if (firstElement.length === 0) {
 			this.log('Did not find any executions')
 			return { start: datetime.getTime(), end: datetime.getTime(), timeline: [] }
 		}
@@ -111,11 +122,11 @@ export class RecurrenceParser {
 
 		for (const el of firstElement) {
 			const res = this.buildTimeline(el, firstExecution)
-			if (!start || !end) {
+			if (!start || !end || !timeline.length) {
 				start = res.start
 				end = res.end
 				timeline = res.timeline
-			} else {
+			} else if (res.timeline.length) {
 				end += (res.end - res.start)
 				res.timeline[0].trigger = {
 					type: Enums.TriggerType.TIME_RELATIVE,
@@ -129,6 +140,7 @@ export class RecurrenceParser {
 	}
 
 	buildTimeline (element: ScheduleElement, firstExecution: number): BuildTimelineResult {
+		if (isNaN(new Date(firstExecution).valueOf())) return { start: Date.now(), end: Date.now(), timeline: [] }
 		const timeline: Array<TimelineObject> = []
 		let end = firstExecution
 		const addFile = (element: ScheduleElement) => {
@@ -205,6 +217,7 @@ export class RecurrenceParser {
 	}
 
 	private getFirstExecution (object: ScheduleElement, now: DateObj): number {
+		if (isNaN(now.valueOf())) throw new Error('Parameter now is an invalid date')
 		let firstDay
 		let firstDateRange: Array<DateObj>
 		let firstTime
@@ -213,22 +226,25 @@ export class RecurrenceParser {
 		let start = now
 
 		let getNextDateRange = () => {
+			let hasFound = false
 			for (let dates of object.dates!) {
 				const begin = new DateObj(dates[0])
 				const end = new DateObj(dates[1])
 				if (begin <= start && end >= start) {
 					firstDateRange = [ new DateObj(start.toLocaleDateString()), new DateObj(end.toLocaleDateString()) ]
-					start = firstDateRange[0]
+					hasFound = true
 					break
 				} else if (begin >= start) {
 					firstDateRange = [ begin, end ]
 					start = firstDateRange[0]
+					hasFound = true
 					break
 				}
 			}
-			// we've recursed through everything and no date was found:
-			if (this.logLevel === LogLevel.Debug) console.log(`WARNING: No execution time was found for ${object.path || object._id || 'unkown'}!`)
-			outOfRange = true
+			if (!hasFound) { // we've recursed through everything and no date was found:
+				if (this.logLevel === LogLevel.Debug) console.log(`WARNING: No execution time was found for ${object.path || object._id || 'unkown'}!`)
+				outOfRange = true // @todo: this breaks
+			}
 		}
 		let getNextWeek = () => {
 			for (let week of object.weeks!) {
@@ -239,6 +255,7 @@ export class RecurrenceParser {
 			if (firstDateRange) {
 				while (start > firstDateRange[1]) {
 					getNextDateRange()
+					if (outOfRange) return
 					getNextWeek()
 				}
 			}
@@ -248,6 +265,7 @@ export class RecurrenceParser {
 				if (day === start.getDay()) {
 					firstDay = start.setWeek(start.getWeek())
 					firstDay.setMilliseconds(day * 86400000)
+					break
 				} else if (day > start.getDay()) {
 					firstDay = start.setWeek(start.getWeek())
 					firstDay.setMilliseconds(day * 86400000)
@@ -258,6 +276,7 @@ export class RecurrenceParser {
 			if (firstDateRange) {
 				while (start > firstDateRange[1]) {
 					getNextDateRange()
+					if (outOfRange) return
 					if (object.weeks) {
 						getNextWeek()
 					}
@@ -266,26 +285,31 @@ export class RecurrenceParser {
 			}
 		}
 
-		if (object.dates) {
+		if (object.dates && object.dates.length > 0) {
 			object.dates.sort()
 			getNextDateRange()
+			if (outOfRange) return Number.MAX_SAFE_INTEGER
 			// what to do when all is in the past?
 			if (this.logLevel === LogLevel.Debug) console.log(`Parsed date ranges for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 		}
 
-		if (object.weeks) {
+		if (object.weeks && object.weeks.length > 0) {
 			object.weeks.sort()
 			getNextWeek()
 			if (this.logLevel === LogLevel.Debug) console.log(`Parsed weeks for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 		}
 
-		if (object.days) {
+		if (object.days && object.days.length > 0) {
 			object.days.sort()
 			getNextDay()
+			if (!new Set(object.days).has(start.getDay())) {
+				start.setWeek(start.getWeek() + 1)
+				return this.getFirstExecution(object, start)
+			}
 			if (this.logLevel === LogLevel.Debug) console.log(`Parsed days for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 		}
 
-		if (object.times) {
+		if (object.times && object.times.length > 0) {
 			object.times.sort()
 			for (let time of object.times) {
 				let date = this.timeToDate(time, start)
