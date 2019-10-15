@@ -147,6 +147,8 @@ export class RecurrenceParser {
 			const duration = this.getMediaDuration(element.path!) * 1000
 			if (duration === 0) return // media file not found.
 			end += duration
+			const classes = [ 'PLAYOUT' ]
+			if (element.audio === false) classes.push('MUTED')
 			timeline.push({
 				id: Math.random().toString(35).substr(2, 7),
 				enable: timeline.length === 0 ? {
@@ -158,16 +160,16 @@ export class RecurrenceParser {
 				},
 				layer: this.layer,
 				content: {
+					deviceType: 1, // casparcg
 					type: 'media',
 					muted: element.audio === false ? true : false,
-					attributes: {
-						file: element.path
-					},
+					file: element.path,
 					mixer: element.audio === false ? {
 						volume: 0
 					} : undefined
 				},
-				priority: element.priority || 100
+				priority: element.priority || 100,
+				classes
 			})
 		}
 		const addFolder = (element: ScheduleElement) => {
