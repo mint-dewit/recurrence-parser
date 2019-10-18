@@ -107,9 +107,9 @@ workflows:
   Test build and deploy(master only):
     jobs:
       - Checkout Code
-      - Check for vulnerabilities:
-          requires:
-            - Checkout Code
+      # - Check for vulnerabilities:
+      #     requires:
+      #       - Checkout Code
       # - Send Coverage:
       #     requires:
       #       - Check for vulnerabilities
@@ -120,7 +120,7 @@ workflows:
       #           - master
       - Git Release:
           requires:
-            - Check for vulnerabilities
+            # - Check for vulnerabilities
             - Checkout Code
           filters:
             branches:
@@ -128,7 +128,7 @@ workflows:
                 - master
       - Build:
           requires:
-            - Check for vulnerabilities
+            # - Check for vulnerabilities
             - Checkout Code
             - Git Release
           filters:
