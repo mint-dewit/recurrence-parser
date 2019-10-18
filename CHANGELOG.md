@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [0.3.0](https://github.com/baltedewit/recurrence-parser/compare/0.2.8...0.3.0) (2019-10-18)
+
+
+### Features
+
+* updated for tsr and use classes ([e425323](https://github.com/baltedewit/recurrence-parser/commit/e425323637b1f0d31393f7fd1e16fa07ef15760b))
+
+
+
 ## [0.2.8](https://github.com/baltedewit/recurrence-parser/compare/0.2.7...0.2.8) (2019-10-14)
 
 
