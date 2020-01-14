@@ -28,7 +28,8 @@ export class DateObj extends Date {
 export enum ScheduleType {
 	Group = 'group',
 	Folder = 'folder',
-	File = 'file'
+	File = 'file',
+	Input = 'input'
 }
 
 export enum LogLevel {
@@ -40,12 +41,18 @@ export interface ScheduleElement {
 	type: ScheduleType
 	_id?: string
 	audio?: boolean
+
 	path?: string
+
+	input?: number
+	duration?: number
 	priority?: number
+
 	days?: Array<number>
 	weeks?: Array<number>
 	dates?: Array<Array<number>>
 	times?: Array<string>
+
 	children?: Array<ScheduleElement>
 }
 
@@ -53,6 +60,11 @@ export interface BuildTimelineResult {
 	start: number
 	end: number
 	timeline: Array<TimelineObject>
+}
+
+export enum LiveMode {
+	CasparCG = 'casparcg',
+	ATEM = 'atem'
 }
 
 export class RecurrenceParser {
@@ -63,6 +75,9 @@ export class RecurrenceParser {
 	getFolderContents: (name: string) => Array<string>
 	logLevel = 1
 	layer = 'PLAYOUT'
+	atemLayer = 'ATEM'
+	atemAudioLayer = 'ATEM_AUDIO'
+	liveMode = LiveMode.CasparCG
 
 	constructor (getMediaDuration: (name: string) => number, getFolderContents: (name: string) => Array<string>, curDate?: () => DateObj, externalLog?: (arg1: any, arg2?: any, arg3?: any) => void) {
 		if (curDate) {
@@ -144,33 +159,106 @@ export class RecurrenceParser {
 		let end = firstExecution
 		const addFile = (element: ScheduleElement) => {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
-			const duration = this.getMediaDuration(element.path!) * 1000
-			if (duration === 0) return // media file not found.
-			end += duration
-			const classes = [ 'PLAYOUT' ]
-			if (element.audio === false) classes.push('MUTED')
-			timeline.push({
-				id: Math.random().toString(35).substr(2, 7),
-				enable: timeline.length === 0 ? {
-					start: firstExecution,
-					duration
-				} : {
-					start: `#${timeline[timeline.length - 1].id}.end`,
-					duration
-				},
-				layer: this.layer,
-				content: {
-					deviceType: 1, // casparcg
-					type: 'media',
-					muted: element.audio === false ? true : false,
-					file: element.path,
-					mixer: element.audio === false ? {
-						volume: 0
-					} : undefined
-				},
-				priority: element.priority || 100,
-				classes
-			})
+			if (element.type === ScheduleType.File) {
+				const duration = this.getMediaDuration(element.path!) * 1000
+				if (duration === 0) return // media file not found.
+				end += duration
+				const classes = [ 'PLAYOUT' ]
+				if (element.audio === false) classes.push('MUTED')
+				timeline.push({
+					id: Math.random().toString(35).substr(2, 7),
+					enable: timeline.length === 0 ? {
+						start: firstExecution,
+						duration
+					} : {
+						start: `#${timeline[timeline.length - 1].id}.end`,
+						duration
+					},
+					layer: this.layer,
+					content: {
+						deviceType: 1, // casparcg
+						type: 'media',
+						muted: element.audio === false ? true : false,
+						file: element.path,
+						mixer: element.audio === false ? {
+							volume: 0
+						} : undefined
+					},
+					priority: element.priority || 100,
+					classes
+				})
+			} else if (element.type === ScheduleType.Input) {
+				const duration = element.duration || 0
+				if (duration === 0) return // no length means do not play
+				end += duration
+				const classes = [ 'PLAYOUT' ]
+				if (element.audio === false) classes.push('MUTED')
+				const id = Math.random().toString(35).substr(2, 7)
+
+				if (this.liveMode === LiveMode.ATEM) {
+					timeline.push({
+						id: id,
+						enable: timeline.length === 0 ? {
+							start: firstExecution,
+							duration
+						} : {
+							start: `#${timeline[timeline.length - 1].id}.end`,
+							duration
+						},
+						layer: this.atemLayer,
+						content: {
+							deviceType: 2,
+							type: 'ME',
+
+							programInput: element.input || 0
+						},
+						priority: element.priority || 100,
+						classes
+					})
+					if (element.audio !== false) {
+						timeline.push({
+							id: Math.random().toString(35).substr(2, 7),
+							enable: {
+								while: '#' + id // parent id
+							},
+							layer: this.atemAudioLayer + element.input,
+							content: {
+								deviceType: 2,
+								type: 'audioChan',
+								audioChannel: {
+									mixOption: 1
+								}
+							},
+							priority: element.priority || 100,
+							classes
+						})
+					}
+				} else {
+					timeline.push({
+						id,
+						enable: timeline.length === 0 ? {
+							start: firstExecution,
+							duration
+						} : {
+							start: `#${timeline[timeline.length - 1].id}.end`,
+							duration
+						},
+						layer: this.layer,
+						content: {
+							deviceType: 1, // casparcg
+							type: 'input',
+
+							muted: element.audio === false ? true : false,
+							device: element.input,
+							mixer: element.audio === false ? {
+								volume: 0
+							} : undefined
+						},
+						priority: element.priority || 100,
+						classes
+					})
+				}
+			}
 		}
 		const addFolder = (element: ScheduleElement) => {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
@@ -195,7 +283,7 @@ export class RecurrenceParser {
 
 		this.log('Building timeline for ', new Date(firstExecution).toLocaleString())
 
-		if (element.type === ScheduleType.File) {
+		if (element.type === ScheduleType.File || element.type === ScheduleType.Input) {
 			addFile(element)
 		} else if (element.type === ScheduleType.Folder) {
 			addFolder(element)
