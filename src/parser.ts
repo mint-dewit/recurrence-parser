@@ -188,7 +188,7 @@ export class RecurrenceParser {
 					classes
 				})
 			} else if (element.type === ScheduleType.Input) {
-				const duration = element.duration || 0
+				const duration = (element.duration || 0) * 1000
 				if (duration === 0) return // no length means do not play
 				end += duration
 				const classes = [ 'PLAYOUT' ]
@@ -210,7 +210,9 @@ export class RecurrenceParser {
 							deviceType: 2,
 							type: 'ME',
 
-							programInput: element.input || 0
+							me: {
+								programInput: element.input || 0
+							}
 						},
 						priority: element.priority || 100,
 						classes
