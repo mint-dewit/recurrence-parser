@@ -60,6 +60,13 @@ export interface BuildTimelineResult {
 	start: number
 	end: number
 	timeline: Array<TimelineObject>
+	readableTimeline: Array<ResolvedElement>
+}
+
+export interface ResolvedElement {
+	label: string
+	start: number
+	duration: number
 }
 
 export enum LiveMode {
@@ -128,12 +135,13 @@ export class RecurrenceParser {
 
 		if (firstElement.length === 0) {
 			this.log('Did not find any executions')
-			return { start: datetime.getTime(), end: datetime.getTime(), timeline: [] }
+			return { start: datetime.getTime(), end: datetime.getTime(), timeline: [], readableTimeline: [] }
 		}
 
 		let start: number = 0
 		let end: number = 0
 		let timeline: Array<TimelineObject> = []
+		let readableTimeline: Array<ResolvedElement> = []
 
 		for (const el of firstElement) {
 			const res = this.buildTimeline(el, firstExecution)
@@ -141,21 +149,28 @@ export class RecurrenceParser {
 				start = res.start
 				end = res.end
 				timeline = res.timeline
+				readableTimeline = res.readableTimeline
 			} else if (res.timeline.length) {
-				end += (res.end - res.start)
+				const tDiff = (res.end - res.start)
+				end += tDiff
 				res.timeline[0].enable = {
 					start: `#${timeline[timeline.length - 1].id}.end`
 				}
 				timeline = [ ...timeline, ...res.timeline ]
+				res.readableTimeline.map(o => {
+					o.start += tDiff
+					return o
+				})
 			}
 		}
 
-		return { start, end, timeline }
+		return { start, end, timeline, readableTimeline }
 	}
 
 	buildTimeline (element: ScheduleElement, firstExecution: number): BuildTimelineResult {
-		if (isNaN(new Date(firstExecution).valueOf())) return { start: Date.now(), end: Date.now(), timeline: [] }
+		if (isNaN(new Date(firstExecution).valueOf())) return { start: Date.now(), end: Date.now(), timeline: [], readableTimeline: [] }
 		const timeline: Array<TimelineObject> = []
+		const readableTimeline: Array<ResolvedElement> = []
 		let end = firstExecution
 		const addFile = (element: ScheduleElement) => {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
@@ -186,6 +201,11 @@ export class RecurrenceParser {
 					},
 					priority: element.priority || 100,
 					classes
+				})
+				readableTimeline.push({
+					label: element.path || 'Unknown',
+					start: end - duration,
+					duration
 				})
 			} else if (element.type === ScheduleType.Input) {
 				const duration = (element.duration || 0) * 1000
@@ -235,6 +255,11 @@ export class RecurrenceParser {
 							classes
 						})
 					}
+					readableTimeline.push({
+						label: 'Atem in ' + (element.input || 0),
+						start: end - duration,
+						duration
+					})
 				} else {
 					timeline.push({
 						id,
@@ -259,6 +284,11 @@ export class RecurrenceParser {
 						priority: element.priority || 100,
 						classes
 					})
+					readableTimeline.push({
+						label: 'Decklink in ' + (element.input || 0),
+						start: end - duration,
+						duration
+					})
 				}
 			}
 		}
@@ -273,11 +303,11 @@ export class RecurrenceParser {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
 			element.children = element.children || []
 			for (let child of element.children) {
-				if (child.type === 'file') {
+				if (child.type === ScheduleType.File || child.type === ScheduleType.Input) {
 					addFile(child)
-				} else if (child.type === 'folder') {
+				} else if (child.type === ScheduleType.Folder) {
 					addFolder(child)
-				} else if (child.type === 'group') {
+				} else if (child.type === ScheduleType.Group) {
 					addGroup(child)
 				}
 			}
@@ -295,7 +325,7 @@ export class RecurrenceParser {
 
 		this.log('Built timeline: ', JSON.stringify(timeline))
 
-		return { start: firstExecution, end, timeline }
+		return { start: firstExecution, end, timeline, readableTimeline }
 	}
 
 	private _curDate () {
