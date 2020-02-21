@@ -83,7 +83,7 @@ export class RecurrenceParser {
 	logLevel = 1
 	layer = 'PLAYOUT'
 	atemLayer = 'ATEM'
-	atemAudioLayer = 'ATEM_AUDIO'
+	atemAudioLayer = 'ATEM_AUDIO_'
 	liveMode = LiveMode.CasparCG
 
 	constructor (getMediaDuration: (name: string) => number, getFolderContents: (name: string) => Array<string>, curDate?: () => DateObj, externalLog?: (arg1: any, arg2?: any, arg3?: any) => void) {
@@ -228,7 +228,7 @@ export class RecurrenceParser {
 						layer: this.atemLayer,
 						content: {
 							deviceType: 2,
-							type: 'ME',
+							type: 'me',
 
 							me: {
 								programInput: element.input || 0
@@ -252,11 +252,11 @@ export class RecurrenceParser {
 								}
 							},
 							priority: element.priority || 100,
-							classes
+							classes: [ ...classes, 'LIVE_AUDIO' ]
 						})
 					}
 					readableTimeline.push({
-						label: 'Atem in ' + (element.input || 0),
+						label: 'Atem input ' + (element.input || 0),
 						start: end - duration,
 						duration
 					})
@@ -285,7 +285,7 @@ export class RecurrenceParser {
 						classes
 					})
 					readableTimeline.push({
-						label: 'Decklink in ' + (element.input || 0),
+						label: 'Decklink input ' + (element.input || 0),
 						start: end - duration,
 						duration
 					})
