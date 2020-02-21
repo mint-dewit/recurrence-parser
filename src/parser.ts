@@ -28,7 +28,8 @@ export class DateObj extends Date {
 export enum ScheduleType {
 	Group = 'group',
 	Folder = 'folder',
-	File = 'file'
+	File = 'file',
+	Input = 'input'
 }
 
 export enum LogLevel {
@@ -40,12 +41,18 @@ export interface ScheduleElement {
 	type: ScheduleType
 	_id?: string
 	audio?: boolean
+
 	path?: string
+
+	input?: number
+	duration?: number
 	priority?: number
+
 	days?: Array<number>
 	weeks?: Array<number>
 	dates?: Array<Array<number>>
 	times?: Array<string>
+
 	children?: Array<ScheduleElement>
 }
 
@@ -53,6 +60,18 @@ export interface BuildTimelineResult {
 	start: number
 	end: number
 	timeline: Array<TimelineObject>
+	readableTimeline: Array<ResolvedElement>
+}
+
+export interface ResolvedElement {
+	label: string
+	start: number
+	duration: number
+}
+
+export enum LiveMode {
+	CasparCG = 'casparcg',
+	ATEM = 'atem'
 }
 
 export class RecurrenceParser {
@@ -63,6 +82,9 @@ export class RecurrenceParser {
 	getFolderContents: (name: string) => Array<string>
 	logLevel = 1
 	layer = 'PLAYOUT'
+	atemLayer = 'ATEM'
+	atemAudioLayer = 'ATEM_AUDIO_'
+	liveMode = LiveMode.CasparCG
 
 	constructor (getMediaDuration: (name: string) => number, getFolderContents: (name: string) => Array<string>, curDate?: () => DateObj, externalLog?: (arg1: any, arg2?: any, arg3?: any) => void) {
 		if (curDate) {
@@ -113,12 +135,13 @@ export class RecurrenceParser {
 
 		if (firstElement.length === 0) {
 			this.log('Did not find any executions')
-			return { start: datetime.getTime(), end: datetime.getTime(), timeline: [] }
+			return { start: datetime.getTime(), end: datetime.getTime(), timeline: [], readableTimeline: [] }
 		}
 
 		let start: number = 0
 		let end: number = 0
 		let timeline: Array<TimelineObject> = []
+		let readableTimeline: Array<ResolvedElement> = []
 
 		for (const el of firstElement) {
 			const res = this.buildTimeline(el, firstExecution)
@@ -126,51 +149,148 @@ export class RecurrenceParser {
 				start = res.start
 				end = res.end
 				timeline = res.timeline
+				readableTimeline = res.readableTimeline
 			} else if (res.timeline.length) {
-				end += (res.end - res.start)
+				const tDiff = (res.end - res.start)
+				end += tDiff
 				res.timeline[0].enable = {
 					start: `#${timeline[timeline.length - 1].id}.end`
 				}
 				timeline = [ ...timeline, ...res.timeline ]
+				res.readableTimeline.map(o => {
+					o.start += tDiff
+					return o
+				})
 			}
 		}
 
-		return { start, end, timeline }
+		return { start, end, timeline, readableTimeline }
 	}
 
 	buildTimeline (element: ScheduleElement, firstExecution: number): BuildTimelineResult {
-		if (isNaN(new Date(firstExecution).valueOf())) return { start: Date.now(), end: Date.now(), timeline: [] }
+		if (isNaN(new Date(firstExecution).valueOf())) return { start: Date.now(), end: Date.now(), timeline: [], readableTimeline: [] }
 		const timeline: Array<TimelineObject> = []
+		const readableTimeline: Array<ResolvedElement> = []
 		let end = firstExecution
 		const addFile = (element: ScheduleElement) => {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
-			const duration = this.getMediaDuration(element.path!) * 1000
-			if (duration === 0) return // media file not found.
-			end += duration
-			const classes = [ 'PLAYOUT' ]
-			if (element.audio === false) classes.push('MUTED')
-			timeline.push({
-				id: Math.random().toString(35).substr(2, 7),
-				enable: timeline.length === 0 ? {
-					start: firstExecution,
+			if (element.type === ScheduleType.File) {
+				const duration = this.getMediaDuration(element.path!) * 1000
+				if (duration === 0) return // media file not found.
+				end += duration
+				const classes = [ 'PLAYOUT' ]
+				if (element.audio === false) classes.push('MUTED')
+				timeline.push({
+					id: Math.random().toString(35).substr(2, 7),
+					enable: timeline.length === 0 ? {
+						start: firstExecution,
+						duration
+					} : {
+						start: `#${timeline[timeline.length - 1].id}.end`,
+						duration
+					},
+					layer: this.layer,
+					content: {
+						deviceType: 1, // casparcg
+						type: 'media',
+						muted: element.audio === false ? true : false,
+						file: element.path,
+						mixer: element.audio === false ? {
+							volume: 0
+						} : undefined
+					},
+					priority: element.priority || 100,
+					classes
+				})
+				readableTimeline.push({
+					label: element.path || 'Unknown',
+					start: end - duration,
 					duration
-				} : {
-					start: `#${timeline[timeline.length - 1].id}.end`,
-					duration
-				},
-				layer: this.layer,
-				content: {
-					deviceType: 1, // casparcg
-					type: 'media',
-					muted: element.audio === false ? true : false,
-					file: element.path,
-					mixer: element.audio === false ? {
-						volume: 0
-					} : undefined
-				},
-				priority: element.priority || 100,
-				classes
-			})
+				})
+			} else if (element.type === ScheduleType.Input) {
+				const duration = (element.duration || 0) * 1000
+				if (duration === 0) return // no length means do not play
+				end += duration
+				const classes = [ 'PLAYOUT' ]
+				if (element.audio === false) classes.push('MUTED')
+				const id = Math.random().toString(35).substr(2, 7)
+
+				if (this.liveMode === LiveMode.ATEM) {
+					timeline.push({
+						id: id,
+						enable: timeline.length === 0 ? {
+							start: firstExecution,
+							duration
+						} : {
+							start: `#${timeline[timeline.length - 1].id}.end`,
+							duration
+						},
+						layer: this.atemLayer,
+						content: {
+							deviceType: 2,
+							type: 'me',
+
+							me: {
+								programInput: element.input || 0
+							}
+						},
+						priority: element.priority || 100,
+						classes
+					})
+					if (element.audio !== false) {
+						timeline.push({
+							id: Math.random().toString(35).substr(2, 7),
+							enable: {
+								while: '#' + id // parent id
+							},
+							layer: this.atemAudioLayer + element.input,
+							content: {
+								deviceType: 2,
+								type: 'audioChan',
+								audioChannel: {
+									mixOption: 1
+								}
+							},
+							priority: element.priority || 100,
+							classes: [ ...classes, 'LIVE_AUDIO' ]
+						})
+					}
+					readableTimeline.push({
+						label: 'Atem input ' + (element.input || 0),
+						start: end - duration,
+						duration
+					})
+				} else {
+					timeline.push({
+						id,
+						enable: timeline.length === 0 ? {
+							start: firstExecution,
+							duration
+						} : {
+							start: `#${timeline[timeline.length - 1].id}.end`,
+							duration
+						},
+						layer: this.layer,
+						content: {
+							deviceType: 1, // casparcg
+							type: 'input',
+
+							muted: element.audio === false ? true : false,
+							device: element.input,
+							mixer: element.audio === false ? {
+								volume: 0
+							} : undefined
+						},
+						priority: element.priority || 100,
+						classes
+					})
+					readableTimeline.push({
+						label: 'Decklink input ' + (element.input || 0),
+						start: end - duration,
+						duration
+					})
+				}
+			}
 		}
 		const addFolder = (element: ScheduleElement) => {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
@@ -183,11 +303,11 @@ export class RecurrenceParser {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
 			element.children = element.children || []
 			for (let child of element.children) {
-				if (child.type === 'file') {
+				if (child.type === ScheduleType.File || child.type === ScheduleType.Input) {
 					addFile(child)
-				} else if (child.type === 'folder') {
+				} else if (child.type === ScheduleType.Folder) {
 					addFolder(child)
-				} else if (child.type === 'group') {
+				} else if (child.type === ScheduleType.Group) {
 					addGroup(child)
 				}
 			}
@@ -195,7 +315,7 @@ export class RecurrenceParser {
 
 		this.log('Building timeline for ', new Date(firstExecution).toLocaleString())
 
-		if (element.type === ScheduleType.File) {
+		if (element.type === ScheduleType.File || element.type === ScheduleType.Input) {
 			addFile(element)
 		} else if (element.type === ScheduleType.Folder) {
 			addFolder(element)
@@ -205,7 +325,7 @@ export class RecurrenceParser {
 
 		this.log('Built timeline: ', JSON.stringify(timeline))
 
-		return { start: firstExecution, end, timeline }
+		return { start: firstExecution, end, timeline, readableTimeline }
 	}
 
 	private _curDate () {
