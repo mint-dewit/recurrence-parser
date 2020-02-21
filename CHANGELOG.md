@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [0.4.0](https://github.com/baltedewit/recurrence-parser/compare/0.3.0...0.4.0) (2020-02-21)
+
+
+### Bug Fixes
+
+* duration in ms & correct structure of tl obj ([99ca3c5](https://github.com/baltedewit/recurrence-parser/commit/99ca3c5eb9f500788158791fa33db408f2ebda03))
+* typo ([bbcaf10](https://github.com/baltedewit/recurrence-parser/commit/bbcaf109c4042da6de1840a442dab218b3f74a6e))
+
+
+### Features
+
+* live inputs ([3857d16](https://github.com/baltedewit/recurrence-parser/commit/3857d16293f8d9e0056a9e8c1860e4c55e2b093f))
+* readable timelines ([f278c10](https://github.com/baltedewit/recurrence-parser/commit/f278c10ae9177208058486fee8f5e44e842182d7))
+
+
+
 # [0.3.0](https://github.com/baltedewit/recurrence-parser/compare/0.2.8...0.3.0) (2019-10-18)
 
 
