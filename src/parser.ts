@@ -296,7 +296,7 @@ export class RecurrenceParser {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
 			const contents = this.getFolderContents(element.path!)
 			for (const clip of contents) {
-				addFile({ ...element, path: clip })
+				addFile({ ...element, path: clip, type: ScheduleType.File })
 			}
 		}
 		const addGroup = (element: ScheduleElement) => {
