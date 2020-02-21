@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.1](https://github.com/baltedewit/recurrence-parser/compare/0.4.0...0.4.1) (2020-02-21)
+
+
+### Bug Fixes
+
+* folder element outputs files ([9726e5d](https://github.com/baltedewit/recurrence-parser/commit/9726e5de620b65923c1bb01f81182b79129cf880))
+
+
+
 # [0.4.0](https://github.com/baltedewit/recurrence-parser/compare/0.3.0...0.4.0) (2020-02-21)
 
 
