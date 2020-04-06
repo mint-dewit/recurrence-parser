@@ -50,7 +50,7 @@ export interface ScheduleElement {
 
 	days?: Array<number>
 	weeks?: Array<number>
-	dates?: Array<Array<number>>
+	dates?: Array<[ string, string ]>
 	times?: Array<string>
 
 	children?: Array<ScheduleElement>
