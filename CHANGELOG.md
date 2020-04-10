@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.2](https://github.com/baltedewit/recurrence-parser/compare/0.4.1...0.4.2) (2020-04-10)
+
+
+### Bug Fixes
+
+* add safe guards for broken schedules ([404aa38](https://github.com/baltedewit/recurrence-parser/commit/404aa386b2c3a64715affb803e059cd2d776da3a))
+* filter out bad data ([cc0c472](https://github.com/baltedewit/recurrence-parser/commit/cc0c472a0650ce5140bd31a3a3eb1bd83e397b6c))
+
+
+
 ## [0.4.1](https://github.com/baltedewit/recurrence-parser/compare/0.4.0...0.4.1) (2020-02-21)
 
 
