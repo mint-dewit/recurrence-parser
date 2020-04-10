@@ -50,7 +50,7 @@ export interface ScheduleElement {
 
 	days?: Array<number>
 	weeks?: Array<number>
-	dates?: Array<Array<number>>
+	dates?: Array<[ string, string ]>
 	times?: Array<string>
 
 	children?: Array<ScheduleElement>
@@ -115,6 +115,9 @@ export class RecurrenceParser {
 		let firstElement: Array<ScheduleElement> = []
 		let recurseElement = (el: ScheduleElement, start: DateObj, isTopLevel = false) => {
 			let executionTime = this.getFirstExecution(el, start)
+			if (executionTime === Number.MAX_SAFE_INTEGER) { // no execution time found
+				return
+			}
 			if (this.logLevel === LogLevel.Debug) this.log(`Execution time for ${el.path || el._id || 'unknown'} is ${new Date(executionTime)}`)
 			if (executionTime < firstExecution && el.times) {
 				firstElement = [ el ]
@@ -382,19 +385,19 @@ export class RecurrenceParser {
 		}
 		let getNextDay = () => {
 			for (let day of object.days!) {
-				if (day === start.getDay()) {
-					firstDay = start.setWeek(start.getWeek())
-					firstDay.setMilliseconds(day * 86400000)
+				if (day === start.getDay()) { // first day
+					firstDay = start.setWeek(start.getWeek()) // set to beginning of the week
+					firstDay.setMilliseconds(day * 86400000) // set to start of day
 					break
-				} else if (day > start.getDay()) {
-					firstDay = start.setWeek(start.getWeek())
-					firstDay.setMilliseconds(day * 86400000)
+				} else if (day > start.getDay()) { // first day
+					firstDay = start.setWeek(start.getWeek()) // set to beginning of the week
+					firstDay.setMilliseconds(day * 86400000) // set to start of day
 					start = firstDay
 					break
 				}
 			}
 			if (firstDateRange) {
-				while (start > firstDateRange[1]) {
+				while (start > firstDateRange[1]) { // current start is past daterange
 					getNextDateRange()
 					if (outOfRange) return
 					if (object.weeks) {
@@ -407,6 +410,7 @@ export class RecurrenceParser {
 
 		if (object.dates && object.dates.length > 0) {
 			object.dates.sort()
+			object.dates = object.dates.filter(dates => dates[0] <= dates[1])
 			getNextDateRange()
 			if (outOfRange) return Number.MAX_SAFE_INTEGER
 			// what to do when all is in the past?
@@ -415,12 +419,14 @@ export class RecurrenceParser {
 
 		if (object.weeks && object.weeks.length > 0) {
 			object.weeks.sort()
+			object.weeks = object.weeks.filter(w => w >= 0 && w <= 53)
 			getNextWeek()
 			if (this.logLevel === LogLevel.Debug) console.log(`Parsed weeks for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 		}
 
 		if (object.days && object.days.length > 0 && object.days.length !== 7) {
 			object.days.sort()
+			object.days = object.days.filter(d => d >= 0 && d <= 6)
 			getNextDay()
 			if (!new Set(object.days).has(start.getDay())) {
 				start.setWeek(start.getWeek() + 1)
