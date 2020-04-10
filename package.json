@@ -80,7 +80,7 @@
     "typedoc/marked": "^0.7.0"
   },
   "dependencies": {
-    "superfly-timeline": "^7.2.4",
+    "superfly-timeline": "^7.3.1",
     "tslib": "^1.9.0"
   },
   "standard-version": {
