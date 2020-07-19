@@ -214,7 +214,7 @@ export class RecurrenceParser {
 				const duration = (element.duration || 0) * 1000
 				if (duration === 0) return // no length means do not play
 				end += duration
-				const classes = [ 'PLAYOUT' ]
+				const classes = [ 'PLAYOUT', 'LIVE' ]
 				if (element.audio === false) classes.push('MUTED')
 				const id = Math.random().toString(35).substr(2, 7)
 
