@@ -43,6 +43,7 @@ export interface ScheduleElement {
 	audio?: boolean
 
 	path?: string
+	sort?: FolderSort
 
 	input?: number
 	duration?: number
@@ -73,12 +74,19 @@ export enum LiveMode {
 	CasparCG = 'casparcg',
 	ATEM = 'atem'
 }
+export enum FolderSort {
+	NameAsc = 'name_asc',
+	NameDesc = 'name_desc',
+	DateAsc = 'date_asc',
+	DateDesc = 'date_desc'
+}
 
 export class RecurrenceParser {
 	schedule: Array<ScheduleElement>
 	curDate: () => DateObj
 	log: (arg1: any, arg2?: any, arg3?: any) => void
 	getMediaDuration: (name: string) => number
+	getMediaTime: (name: string) => number
 	getFolderContents: (name: string) => Array<string>
 	logLevel = 1
 	layer = 'PLAYOUT'
@@ -86,7 +94,7 @@ export class RecurrenceParser {
 	atemAudioLayer = 'ATEM_AUDIO_'
 	liveMode = LiveMode.CasparCG
 
-	constructor (getMediaDuration: (name: string) => number, getFolderContents: (name: string) => Array<string>, curDate?: () => DateObj, externalLog?: (arg1: any, arg2?: any, arg3?: any) => void) {
+	constructor (getMediaDuration: (name: string) => number, getMediaTime: (name: string) => number, getFolderContents: (name: string) => Array<string>, curDate?: () => DateObj, externalLog?: (arg1: any, arg2?: any, arg3?: any) => void) {
 		if (curDate) {
 			this.curDate = curDate
 		} else {
@@ -101,6 +109,7 @@ export class RecurrenceParser {
 
 		this.getMediaDuration = getMediaDuration
 		this.getFolderContents = getFolderContents
+		this.getMediaTime = getMediaTime
 
 		this.log('Initialized the recurrence parser')
 	}
@@ -298,6 +307,22 @@ export class RecurrenceParser {
 		const addFolder = (element: ScheduleElement) => {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
 			const contents = this.getFolderContents(element.path!)
+			if (element.sort) {
+				contents.sort((a, b) => {
+					switch (element.sort) {
+						case FolderSort.NameAsc:
+							return a > b ? 1 : a === b ? 0 : -1
+						case FolderSort.NameDesc:
+							return a > b ? -1 : a === b ? 0 : 1
+						case FolderSort.DateAsc:
+							return this.getMediaTime(a) - this.getMediaTime(b)
+						case FolderSort.DateDesc:
+							return this.getMediaTime(b) - this.getMediaTime(a)
+						default:
+							return 0
+					}
+				})
+			}
 			for (const clip of contents) {
 				addFile({ ...element, path: clip, type: ScheduleType.File })
 			}
