@@ -10,9 +10,9 @@ export class DateObj extends Date {
 		t -= oneJan.getTime() // remove all before the start of the year (t = ms elapsed this year)
 		t /= millisecsInDay // divide by ms/day => t = days elapsed this year
 		t += oneJan.getDay() + 1 // account for the fact that newyears don't always start on the first day of week
-        t = Math.floor(t)
-        t /= 7 // divide by 7 to get the week no
-        t = Math.ceil(t)
+		t = Math.floor(t)
+		t /= 7 // divide by 7 to get the week no
+		t = Math.ceil(t)
 
 		return t
 	}
@@ -43,6 +43,7 @@ export interface ScheduleElement {
 	audio?: boolean
 
 	path?: string
+	sort?: FolderSort
 
 	input?: number
 	duration?: number
@@ -73,12 +74,19 @@ export enum LiveMode {
 	CasparCG = 'casparcg',
 	ATEM = 'atem'
 }
+export enum FolderSort {
+	NameAsc = 'name_asc',
+	NameDesc = 'name_desc',
+	DateAsc = 'date_asc',
+	DateDesc = 'date_desc'
+}
 
 export class RecurrenceParser {
 	schedule: Array<ScheduleElement>
 	curDate: () => DateObj
 	log: (arg1: any, arg2?: any, arg3?: any) => void
 	getMediaDuration: (name: string) => number
+	getMediaTime: (name: string) => number
 	getFolderContents: (name: string) => Array<string>
 	logLevel = 1
 	layer = 'PLAYOUT'
@@ -86,7 +94,7 @@ export class RecurrenceParser {
 	atemAudioLayer = 'ATEM_AUDIO_'
 	liveMode = LiveMode.CasparCG
 
-	constructor (getMediaDuration: (name: string) => number, getFolderContents: (name: string) => Array<string>, curDate?: () => DateObj, externalLog?: (arg1: any, arg2?: any, arg3?: any) => void) {
+	constructor (getMediaDuration: (name: string) => number, getMediaTime: (name: string) => number, getFolderContents: (name: string) => Array<string>, curDate?: () => DateObj, externalLog?: (arg1: any, arg2?: any, arg3?: any) => void) {
 		if (curDate) {
 			this.curDate = curDate
 		} else {
@@ -101,6 +109,7 @@ export class RecurrenceParser {
 
 		this.getMediaDuration = getMediaDuration
 		this.getFolderContents = getFolderContents
+		this.getMediaTime = getMediaTime
 
 		this.log('Initialized the recurrence parser')
 	}
@@ -179,7 +188,7 @@ export class RecurrenceParser {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
 			if (element.type === ScheduleType.File) {
 				const duration = this.getMediaDuration(element.path!) * 1000
-				if (duration === 0) return // media file not found.
+				if (!duration) return // media file not found.
 				end += duration
 				const classes = [ 'PLAYOUT' ]
 				if (element.audio === false) classes.push('MUTED')
@@ -214,7 +223,7 @@ export class RecurrenceParser {
 				const duration = (element.duration || 0) * 1000
 				if (duration === 0) return // no length means do not play
 				end += duration
-				const classes = [ 'PLAYOUT' ]
+				const classes = [ 'PLAYOUT', 'LIVE' ]
 				if (element.audio === false) classes.push('MUTED')
 				const id = Math.random().toString(35).substr(2, 7)
 
@@ -298,6 +307,22 @@ export class RecurrenceParser {
 		const addFolder = (element: ScheduleElement) => {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
 			const contents = this.getFolderContents(element.path!)
+			if (element.sort) {
+				contents.sort((a, b) => {
+					switch (element.sort) {
+						case FolderSort.NameAsc:
+							return a > b ? 1 : a === b ? 0 : -1
+						case FolderSort.NameDesc:
+							return a > b ? -1 : a === b ? 0 : 1
+						case FolderSort.DateAsc:
+							return this.getMediaTime(a) - this.getMediaTime(b)
+						case FolderSort.DateDesc:
+							return this.getMediaTime(b) - this.getMediaTime(a)
+						default:
+							return 0
+					}
+				})
+			}
 			for (const clip of contents) {
 				addFile({ ...element, path: clip, type: ScheduleType.File })
 			}
