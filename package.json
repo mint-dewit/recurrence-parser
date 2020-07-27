@@ -1,6 +1,6 @@
 {
   "name": "recurrence-parser",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Parse recurrence schedules into supertimeline objects",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -77,8 +77,8 @@
     "source"
   ],
   "resolutions": {
-	"typedoc/marked": "^0.7.0",
-	"yargs-parser": ""
+    "typedoc/marked": "^0.7.0",
+    "yargs-parser": ""
   },
   "dependencies": {
     "superfly-timeline": "^7.3.1",

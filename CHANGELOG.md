@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [0.5.0](https://github.com/baltedewit/recurrence-parser/compare/0.4.2...0.5.0) (2020-07-27)
+
+
+### Bug Fixes
+
+* skip files without duration ([023d69f](https://github.com/baltedewit/recurrence-parser/commit/023d69fbb55341d96659ce6004a940269f5d8c7c))
+
+
+### Features
+
+* folder items sorting ([c81492b](https://github.com/baltedewit/recurrence-parser/commit/c81492bb4c59c7fa35c2bb112b6dbd7c277440b9))
+
+
+
 ## [0.4.2](https://github.com/baltedewit/recurrence-parser/compare/0.4.1...0.4.2) (2020-04-10)
 
 
