@@ -188,7 +188,7 @@ export class RecurrenceParser {
 			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
 			if (element.type === ScheduleType.File) {
 				const duration = this.getMediaDuration(element.path!) * 1000
-				if (duration === 0) return // media file not found.
+				if (!duration) return // media file not found.
 				end += duration
 				const classes = [ 'PLAYOUT' ]
 				if (element.audio === false) classes.push('MUTED')
