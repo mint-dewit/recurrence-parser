@@ -1,85 +1,7 @@
 import { TimelineObject } from 'superfly-timeline'
-
-export class DateObj extends Date {
-	getWeek (): number {
-		let oneJan = new Date(this.getFullYear(),0,1)
-		let millisecsInDay = 86400000
-
-		let t = this.getTime() // current time
-		t -= this.getTimezoneOffset() * 60000 // adjust for timezone
-		t -= oneJan.getTime() // remove all before the start of the year (t = ms elapsed this year)
-		t /= millisecsInDay // divide by ms/day => t = days elapsed this year
-		t += oneJan.getDay() + 1 // account for the fact that newyears don't always start on the first day of week
-		t = Math.floor(t)
-		t /= 7 // divide by 7 to get the week no
-		t = Math.ceil(t)
-
-		return t
-	}
-
-	setWeek (week: number): DateObj {
-		this.setFullYear(this.getFullYear(), 0, 1)
-		this.setDate(-this.getDay() + 1)
-		this.setDate((this.getDate() - 1) + week * 7 - 6)
-		return this
-	}
-}
-
-export enum ScheduleType {
-	Group = 'group',
-	Folder = 'folder',
-	File = 'file',
-	Input = 'input'
-}
-
-export enum LogLevel {
-	Production = 1,
-	Debug = 0
-}
-
-export interface ScheduleElement {
-	type: ScheduleType
-	_id?: string
-	audio?: boolean
-
-	path?: string
-	sort?: FolderSort
-
-	input?: number
-	duration?: number
-	priority?: number
-
-	days?: Array<number>
-	weeks?: Array<number>
-	dates?: Array<[ string, string ]>
-	times?: Array<string>
-
-	children?: Array<ScheduleElement>
-}
-
-export interface BuildTimelineResult {
-	start: number
-	end: number
-	timeline: Array<TimelineObject>
-	readableTimeline: Array<ResolvedElement>
-}
-
-export interface ResolvedElement {
-	label: string
-	start: number
-	duration: number
-}
-
-export enum LiveMode {
-	CasparCG = 'casparcg',
-	ATEM = 'atem'
-}
-export enum FolderSort {
-	NameAsc = 'name_asc',
-	NameDesc = 'name_desc',
-	DateAsc = 'date_asc',
-	DateDesc = 'date_desc'
-}
+import { DateObj } from './util'
+import { ScheduleElement, LiveMode, BuildTimelineResult, ResolvedElement, LogLevel, ScheduleType, FolderSort } from './interface'
+import { getFirstExecution } from './resolver'
 
 export class RecurrenceParser {
 	schedule: Array<ScheduleElement>
@@ -123,7 +45,7 @@ export class RecurrenceParser {
 		let firstExecution = Number.MAX_SAFE_INTEGER
 		let firstElement: Array<ScheduleElement> = []
 		let recurseElement = (el: ScheduleElement, start: DateObj, isTopLevel = false) => {
-			let executionTime = this.getFirstExecution(el, start)
+			let executionTime = getFirstExecution(el, start)
 			if (executionTime === Number.MAX_SAFE_INTEGER) { // no execution time found
 				return
 			}
@@ -185,15 +107,96 @@ export class RecurrenceParser {
 		const readableTimeline: Array<ResolvedElement> = []
 		let end = firstExecution
 		const addFile = (element: ScheduleElement) => {
-			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
-			if (element.type === ScheduleType.File) {
-				const duration = this.getMediaDuration(element.path!) * 1000
-				if (!duration) return // media file not found.
-				end += duration
-				const classes = [ 'PLAYOUT' ]
-				if (element.audio === false) classes.push('MUTED')
+			const duration = this.getMediaDuration(element.path!) * 1000
+			if (!duration) return // media file not found.
+			end += duration
+			const classes = [ 'PLAYOUT' ]
+			if (element.audio === false) classes.push('MUTED')
+			timeline.push({
+				id: Math.random().toString(35).substr(2, 7),
+				enable: timeline.length === 0 ? {
+					start: firstExecution,
+					duration
+				} : {
+					start: `#${timeline[timeline.length - 1].id}.end`,
+					duration
+				},
+				layer: this.layer,
+				content: {
+					deviceType: 1, // casparcg
+					type: 'media',
+					muted: element.audio === false ? true : false,
+					file: element.path,
+					mixer: element.audio === false ? {
+						volume: 0
+					} : undefined
+				},
+				priority: element.priority || 100,
+				classes
+			})
+			readableTimeline.push({
+				label: element.path || 'Unknown',
+				start: end - duration,
+				duration
+			})
+			
+		}
+		const addLive = (element: ScheduleElement) => {
+			const duration = (element.duration || 0) * 1000
+			if (duration === 0) return // no length means do not play
+			end += duration
+			const classes = [ 'PLAYOUT', 'LIVE' ]
+			if (element.audio === false) classes.push('MUTED')
+			const id = Math.random().toString(35).substr(2, 7)
+
+			if (this.liveMode === LiveMode.ATEM) {
 				timeline.push({
-					id: Math.random().toString(35).substr(2, 7),
+					id: id,
+					enable: timeline.length === 0 ? {
+						start: firstExecution,
+						duration
+					} : {
+						start: `#${timeline[timeline.length - 1].id}.end`,
+						duration
+					},
+					layer: this.atemLayer,
+					content: {
+						deviceType: 2,
+						type: 'me',
+
+						me: {
+							programInput: element.input || 0
+						}
+					},
+					priority: element.priority || 100,
+					classes
+				})
+				if (element.audio !== false) {
+					timeline.push({
+						id: Math.random().toString(35).substr(2, 7),
+						enable: {
+							while: '#' + id // parent id
+						},
+						layer: this.atemAudioLayer + element.input,
+						content: {
+							deviceType: 2,
+							type: 'audioChan',
+							audioChannel: {
+								mixOption: 1
+							}
+						},
+						priority: element.priority || 100,
+						classes: [ ...classes, 'LIVE_AUDIO' ]
+					})
+				}
+				readableTimeline.push({
+					label: 'Atem input ' + (element.input || 0),
+					start: end - duration,
+					duration
+				})
+			} else {
+				timeline.push({
+					id,
 					enable: timeline.length === 0 ? {
 						start: firstExecution,
 						duration
@@ -204,9 +207,10 @@ export class RecurrenceParser {
 					layer: this.layer,
 					content: {
 						deviceType: 1, // casparcg
-						type: 'media',
+						type: 'input',
+
 						muted: element.audio === false ? true : false,
-						file: element.path,
+						device: element.input,
 						mixer: element.audio === false ? {
 							volume: 0
 						} : undefined
@@ -215,97 +219,13 @@ export class RecurrenceParser {
 					classes
 				})
 				readableTimeline.push({
-					label: element.path || 'Unknown',
+					label: 'Decklink input ' + (element.input || 0),
 					start: end - duration,
 					duration
 				})
-			} else if (element.type === ScheduleType.Input) {
-				const duration = (element.duration || 0) * 1000
-				if (duration === 0) return // no length means do not play
-				end += duration
-				const classes = [ 'PLAYOUT', 'LIVE' ]
-				if (element.audio === false) classes.push('MUTED')
-				const id = Math.random().toString(35).substr(2, 7)
-
-				if (this.liveMode === LiveMode.ATEM) {
-					timeline.push({
-						id: id,
-						enable: timeline.length === 0 ? {
-							start: firstExecution,
-							duration
-						} : {
-							start: `#${timeline[timeline.length - 1].id}.end`,
-							duration
-						},
-						layer: this.atemLayer,
-						content: {
-							deviceType: 2,
-							type: 'me',
-
-							me: {
-								programInput: element.input || 0
-							}
-						},
-						priority: element.priority || 100,
-						classes
-					})
-					if (element.audio !== false) {
-						timeline.push({
-							id: Math.random().toString(35).substr(2, 7),
-							enable: {
-								while: '#' + id // parent id
-							},
-							layer: this.atemAudioLayer + element.input,
-							content: {
-								deviceType: 2,
-								type: 'audioChan',
-								audioChannel: {
-									mixOption: 1
-								}
-							},
-							priority: element.priority || 100,
-							classes: [ ...classes, 'LIVE_AUDIO' ]
-						})
-					}
-					readableTimeline.push({
-						label: 'Atem input ' + (element.input || 0),
-						start: end - duration,
-						duration
-					})
-				} else {
-					timeline.push({
-						id,
-						enable: timeline.length === 0 ? {
-							start: firstExecution,
-							duration
-						} : {
-							start: `#${timeline[timeline.length - 1].id}.end`,
-							duration
-						},
-						layer: this.layer,
-						content: {
-							deviceType: 1, // casparcg
-							type: 'input',
-
-							muted: element.audio === false ? true : false,
-							device: element.input,
-							mixer: element.audio === false ? {
-								volume: 0
-							} : undefined
-						},
-						priority: element.priority || 100,
-						classes
-					})
-					readableTimeline.push({
-						label: 'Decklink input ' + (element.input || 0),
-						start: end - duration,
-						duration
-					})
-				}
 			}
 		}
 		const addFolder = (element: ScheduleElement) => {
-			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
 			const contents = this.getFolderContents(element.path!)
 			if (element.sort) {
 				contents.sort((a, b) => {
@@ -328,11 +248,14 @@ export class RecurrenceParser {
 			}
 		}
 		const addGroup = (element: ScheduleElement) => {
-			if (this.getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
+			if (getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
 			element.children = element.children || []
 			for (let child of element.children) {
-				if (child.type === ScheduleType.File || child.type === ScheduleType.Input) {
+				if (getFirstExecution(child, new DateObj(firstExecution)) > firstExecution) continue
+				if (child.type === ScheduleType.File) {
 					addFile(child)
+				} if (child.type === ScheduleType.Input) {
+					addLive(child)
 				} else if (child.type === ScheduleType.Folder) {
 					addFolder(child)
 				} else if (child.type === ScheduleType.Group) {
@@ -362,134 +285,5 @@ export class RecurrenceParser {
 
 	private _log (arg1: any, arg2?: any, arg3?: any) {
 		console.log(arg1, arg2 || null, arg3 || null)
-	}
-
-	private getFirstExecution (object: ScheduleElement, now: DateObj): number {
-		if (isNaN(now.valueOf())) throw new Error('Parameter now is an invalid date')
-		let firstDay
-		let firstDateRange: Array<DateObj>
-		let firstTime
-		let outOfRange = false
-
-		let start = now
-
-		let getNextDateRange = () => {
-			let hasFound = false
-			for (let dates of object.dates!) {
-				const begin = new DateObj(dates[0])
-				const end = new DateObj(dates[1])
-				if (begin <= start && end >= start) {
-					firstDateRange = [ new DateObj(start.toLocaleDateString()), new DateObj(end.toLocaleDateString()) ]
-					hasFound = true
-					break
-				} else if (begin >= start) {
-					firstDateRange = [ begin, end ]
-					start = firstDateRange[0]
-					hasFound = true
-					break
-				}
-			}
-			if (!hasFound) { // we've recursed through everything and no date was found:
-				if (this.logLevel === LogLevel.Debug) console.log(`WARNING: No execution time was found for ${object.path || object._id || 'unkown'}!`)
-				outOfRange = true // @todo: this breaks
-			}
-		}
-		let getNextWeek = () => {
-			for (let week of object.weeks!) {
-				if (week > start.getWeek()) {
-					start = new DateObj().setWeek(week)
-				}
-			}
-			if (firstDateRange) {
-				while (start > firstDateRange[1]) {
-					getNextDateRange()
-					if (outOfRange) return
-					getNextWeek()
-				}
-			}
-		}
-		let getNextDay = () => {
-			for (let day of object.days!) {
-				if (day === start.getDay()) { // first day
-					firstDay = start.setWeek(start.getWeek()) // set to beginning of the week
-					firstDay.setMilliseconds(day * 86400000) // set to start of day
-					break
-				} else if (day > start.getDay()) { // first day
-					firstDay = start.setWeek(start.getWeek()) // set to beginning of the week
-					firstDay.setMilliseconds(day * 86400000) // set to start of day
-					start = firstDay
-					break
-				}
-			}
-			if (firstDateRange) {
-				while (start > firstDateRange[1]) { // current start is past daterange
-					getNextDateRange()
-					if (outOfRange) return
-					if (object.weeks) {
-						getNextWeek()
-					}
-					getNextDay()
-				}
-			}
-		}
-
-		if (object.dates && object.dates.length > 0) {
-			object.dates.sort()
-			object.dates = object.dates.filter(dates => dates[0] <= dates[1])
-			getNextDateRange()
-			if (outOfRange) return Number.MAX_SAFE_INTEGER
-			// what to do when all is in the past?
-			if (this.logLevel === LogLevel.Debug) console.log(`Parsed date ranges for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
-		}
-
-		if (object.weeks && object.weeks.length > 0) {
-			object.weeks.sort()
-			object.weeks = object.weeks.filter(w => w >= 0 && w <= 53)
-			getNextWeek()
-			if (this.logLevel === LogLevel.Debug) console.log(`Parsed weeks for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
-		}
-
-		if (object.days && object.days.length > 0 && object.days.length !== 7) {
-			object.days.sort()
-			object.days = object.days.filter(d => d >= 0 && d <= 6)
-			getNextDay()
-			if (!new Set(object.days).has(start.getDay())) {
-				start.setWeek(start.getWeek() + 1)
-				return this.getFirstExecution(object, start)
-			}
-			if (this.logLevel === LogLevel.Debug) console.log(`Parsed days for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
-		}
-
-		if (object.times && object.times.length > 0) {
-			object.times.sort()
-			for (let time of object.times) {
-				let date = this.timeToDate(time, start)
-				if (this.logLevel === LogLevel.Debug) console.log(`Parsed time is at ${date.toLocaleString()}, start is at ${start.toLocaleString()}`)
-				if (date >= start) {
-					start = date
-					firstTime = time
-					break
-				}
-			}
-			if (typeof firstTime === 'undefined') { // pass midnight
-				start.setHours(0, 0, 0, 0)
-				start.setMilliseconds(86400000)
-				return this.getFirstExecution(object, start)
-			}
-			if (this.logLevel === LogLevel.Debug) console.log(`Parsed times for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
-		}
-
-		if (outOfRange) return Number.MAX_SAFE_INTEGER
-		return start.getTime()
-	}
-
-	private timeToDate (time: string, date: Date): DateObj {
-		let timeParts = time.split(':')
-		let dateObj = new DateObj(date)
-		dateObj.setHours(Number(timeParts[0]))
-		dateObj.setMinutes(Number(timeParts[1]))
-		dateObj.setSeconds(Number(timeParts[2]))
-		dateObj.setMilliseconds(0)
-		return dateObj
 	}
 }
