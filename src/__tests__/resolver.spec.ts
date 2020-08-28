@@ -177,3 +177,16 @@ test('getFirstExecution - days + weeks + dates', () => {
 
 	expect(firstExec).toBe(new Date('2020-08-28 18:00:00').getTime())
 })
+
+test('getFirstExecution - next day, within 24hrs', () => {
+	const now = new DateObj('2020-08-20 15:01:00') // thursday 15:01
+	const element: ScheduleElement = {
+		type: ScheduleType.File,
+		times: ['13:00:00'],
+		days: [5] // friday
+	}
+
+	const firstExec = getFirstExecution(element, now)
+
+	expect(firstExec).toBe(new Date('2020-08-21 13:00:00').getTime())
+})
