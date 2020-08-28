@@ -11,7 +11,6 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 	let start = now
 
 	let getNextDateRange = () => {
-		console.log('getNextDaterange', start)
 		let hasFound = false
 		for (let dates of object.dates!) {
 			const begin = new DateObj(dates[0])
@@ -54,6 +53,7 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 				break
 			} else if (day > start.getDay()) { // first day
 				firstDay = start.setWeek(start.getWeek()) // set to beginning of the week
+				firstDay.setHours(0, 0, 0,0) // set to midnight
 				firstDay.setMilliseconds(day * 86400000) // set to start of day
 				start = firstDay
 				break
