@@ -1,6 +1,6 @@
 import { TimelineObject } from 'superfly-timeline'
 import { DateObj } from './util'
-import { ScheduleElement, LiveMode, BuildTimelineResult, ResolvedElement, LogLevel, ScheduleType, FolderSort } from './interface'
+import { ScheduleElement, LiveMode, BuildTimelineResult, ResolvedElement, ScheduleType, FolderSort } from './interface'
 import { getFirstExecution } from './resolver'
 
 export class RecurrenceParser {
@@ -42,20 +42,17 @@ export class RecurrenceParser {
 		}
 		this.log('Getting first timeline after', datetime.toLocaleString())
 
-		let firstExecution = Number.MAX_SAFE_INTEGER
-		let firstElement: Array<ScheduleElement> = []
-		let recurseElement = (el: ScheduleElement, start: DateObj, isTopLevel = false) => {
+		const executions: { [time: number]: Array<ScheduleElement> } = {}
+
+		const recurseElement = (el: ScheduleElement, start: DateObj) => {
 			let executionTime = getFirstExecution(el, start)
-			if (executionTime === Number.MAX_SAFE_INTEGER) { // no execution time found
-				return
+
+			if (el.type !== ScheduleType.Group) {
+				if (!executions[executionTime]) executions[executionTime] = []
+
+				executions[executionTime].push(el)
 			}
-			if (this.logLevel === LogLevel.Debug) this.log(`Execution time for ${el.path || el._id || 'unknown'} is ${new Date(executionTime)}`)
-			if (executionTime < firstExecution && el.times) {
-				firstElement = [ el ]
-				firstExecution = executionTime
-			} else if (executionTime === firstExecution && isTopLevel && el.times) {
-				firstElement.push(el)
-			}
+
 			if (el.children) {
 				for (let child of el.children) {
 					recurseElement(child, new DateObj(executionTime))
@@ -64,13 +61,17 @@ export class RecurrenceParser {
 		}
 
 		for (const child of this.schedule) {
-			recurseElement(child, new DateObj(datetime), true)
+			recurseElement(child, new DateObj(datetime))
 		}
 
-		if (firstElement.length === 0) {
+		const executionTimes = Object.keys(executions)
+		if (executionTimes.length === 0) {
 			this.log('Did not find any executions')
 			return { start: datetime.getTime(), end: datetime.getTime(), timeline: [], readableTimeline: [] }
 		}
+
+		const firstExecution = Number(executionTimes.sort()[0])
+		const firstElement = executions[firstExecution]
 
 		let start: number = 0
 		let end: number = 0
@@ -85,6 +86,7 @@ export class RecurrenceParser {
 				timeline = res.timeline
 				readableTimeline = res.readableTimeline
 			} else if (res.timeline.length) {
+				const oldLength = end - start
 				const tDiff = (res.end - res.start)
 				end += tDiff
 				res.timeline[0].enable = {
@@ -92,9 +94,13 @@ export class RecurrenceParser {
 				}
 				timeline = [ ...timeline, ...res.timeline ]
 				res.readableTimeline.map(o => {
-					o.start += tDiff
+					o.start += oldLength
 					return o
 				})
+				readableTimeline = [
+					...readableTimeline,
+					...res.readableTimeline
+				]
 			}
 		}
 
@@ -139,7 +145,7 @@ export class RecurrenceParser {
 				start: end - duration,
 				duration
 			})
-			
+
 		}
 		const addLive = (element: ScheduleElement) => {
 			const duration = (element.duration || 0) * 1000
@@ -247,31 +253,15 @@ export class RecurrenceParser {
 				addFile({ ...element, path: clip, type: ScheduleType.File })
 			}
 		}
-		const addGroup = (element: ScheduleElement) => {
-			if (getFirstExecution(element, new DateObj(firstExecution)) > firstExecution) return
-			element.children = element.children || []
-			for (let child of element.children) {
-				if (getFirstExecution(child, new DateObj(firstExecution)) > firstExecution) continue
-				if (child.type === ScheduleType.File) {
-					addFile(child)
-				} if (child.type === ScheduleType.Input) {
-					addLive(child)
-				} else if (child.type === ScheduleType.Folder) {
-					addFolder(child)
-				} else if (child.type === ScheduleType.Group) {
-					addGroup(child)
-				}
-			}
-		}
 
 		this.log('Building timeline for ', new Date(firstExecution).toLocaleString())
 
-		if (element.type === ScheduleType.File || element.type === ScheduleType.Input) {
+		if (element.type === ScheduleType.File) {
 			addFile(element)
+		} else if (element.type === ScheduleType.Input) {
+			addLive(element)
 		} else if (element.type === ScheduleType.Folder) {
 			addFolder(element)
-		} else if (element.type === ScheduleType.Group) {
-			addGroup(element)
 		}
 
 		this.log('Built timeline: ', JSON.stringify(timeline))
