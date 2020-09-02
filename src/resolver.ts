@@ -32,11 +32,19 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 		}
 	}
 	let getNextWeek = () => {
-		for (let week of object.weeks!) {
-			if (week > start.getWeek()) {
-				start = new DateObj().setWeek(week)
-			}
+		const firstWeek = object.weeks!.find(w => w > start.getWeek())
+		if (firstWeek) {
+			start = new DateObj().setWeek(firstWeek)
+		} else {
+			start = new DateObj()
+			start.setFullYear(start.getFullYear() + 1)
+			start.setWeek(object.weeks![0])
 		}
+		// for (let week of object.weeks!) {
+		// 	if (week > start.getWeek()) {
+		// 		start = new DateObj().setWeek(week)
+		// 	}
+		// }
 		if (firstDateRange) {
 			while (start > firstDateRange[1]) {
 				getNextDateRange()
