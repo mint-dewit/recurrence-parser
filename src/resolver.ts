@@ -3,7 +3,7 @@ import { ScheduleElement } from './interface'
 
 export function getFirstExecution (object: ScheduleElement, now: DateObj): number {
 	if (isNaN(now.valueOf())) throw new Error('Parameter now is an invalid date')
-	let firstDay
+	let firstDay: DateObj
 	let firstDateRange: Array<DateObj>
 	let firstTime
 	let outOfRange = false
@@ -32,19 +32,14 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 		}
 	}
 	let getNextWeek = () => {
-		const firstWeek = object.weeks!.find(w => w > start.getWeek())
-		if (firstWeek) {
+		const firstWeek = object.weeks!.find(w => w >= start.getWeek())
+		if (firstWeek && firstWeek > start.getWeek()) {
 			start = new DateObj().setWeek(firstWeek)
-		} else {
+		} else if (!firstWeek) {
 			start = new DateObj()
-			start.setFullYear(start.getFullYear() + 1)
+			start.setFullYear(start.getFullYear() + 1, 0, 1)
 			start.setWeek(object.weeks![0])
 		}
-		// for (let week of object.weeks!) {
-		// 	if (week > start.getWeek()) {
-		// 		start = new DateObj().setWeek(week)
-		// 	}
-		// }
 		if (firstDateRange) {
 			while (start > firstDateRange[1]) {
 				getNextDateRange()
@@ -56,13 +51,12 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 	let getNextDay = () => {
 		for (let day of object.days!) {
 			if (day === start.getDay()) { // first day
-				firstDay = start.setWeek(start.getWeek()) // set to beginning of the week
-				firstDay.setMilliseconds(day * 86400000) // set to start of day
+				firstDay = new DateObj(start.getTime()).setWeek(start.getWeek()) // set to beginning of the week
+				firstDay.setMilliseconds((day - 1) * 86400000) // set to start of day
 				break
 			} else if (day > start.getDay()) { // first day
-				firstDay = start.setWeek(start.getWeek()) // set to beginning of the week
-				firstDay.setHours(0, 0, 0,0) // set to midnight
-				firstDay.setMilliseconds(day * 86400000) // set to start of day
+				firstDay = new DateObj(start.getTime()).setWeek(start.getWeek()) // set to beginning of the week
+				firstDay.setMilliseconds((day - 1) * 86400000) // set to start of day
 				start = firstDay
 				break
 			}
@@ -85,14 +79,14 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 		getNextDateRange()
 		if (outOfRange) return Number.MAX_SAFE_INTEGER
 		// what to do when all is in the past?
-		console.log(`Parsed date ranges for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
+		// console.log(`Parsed date ranges for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 	}
 
 	if (object.weeks && object.weeks.length > 0) {
 		object.weeks.sort()
 		object.weeks = object.weeks.filter(w => w >= 0 && w <= 53)
 		getNextWeek()
-		console.log(`Parsed weeks for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
+		// console.log(`Parsed weeks for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 	}
 
 	if (object.days && object.days.length > 0 && object.days.length !== 7) {
@@ -103,14 +97,14 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 			start.setWeek(start.getWeek() + 1)
 			return getFirstExecution(object, start)
 		}
-		console.log(`Parsed days for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
+		// console.log(`Parsed days for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 	}
 
 	if (object.times && object.times.length > 0) {
 		object.times.sort()
 		for (let time of object.times) {
 			let date = timeToDate(time, start)
-			console.log(`Parsed time is at ${date.toLocaleString()}, start is at ${start.toLocaleString()}`)
+			// console.log(`Parsed time is at ${date.toLocaleString()}, start is at ${start.toLocaleString()}`)
 			if (date >= start) {
 				start = date
 				firstTime = time
@@ -122,7 +116,7 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 			start.setMilliseconds(86400000)
 			return getFirstExecution(object, start)
 		}
-		console.log(`Parsed times for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
+		// console.log(`Parsed times for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 	}
 
 	if (outOfRange) return Number.MAX_SAFE_INTEGER

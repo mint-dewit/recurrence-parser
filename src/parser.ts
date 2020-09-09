@@ -33,14 +33,14 @@ export class RecurrenceParser {
 		this.getFolderContents = getFolderContents
 		this.getMediaTime = getMediaTime
 
-		this.log('Initialized the recurrence parser')
+		// this.log('Initialized the recurrence parser')
 	}
 
 	getNextTimeline (datetime?: DateObj): BuildTimelineResult {
 		if (!datetime) {
 			datetime = this.curDate()
 		}
-		this.log('Getting first timeline after', datetime.toLocaleString())
+		// this.log('Getting first timeline after', datetime.toLocaleString())
 
 		const executions: { [time: number]: Array<ScheduleElement> } = {}
 
@@ -66,7 +66,7 @@ export class RecurrenceParser {
 
 		const executionTimes = Object.keys(executions)
 		if (executionTimes.length === 0) {
-			this.log('Did not find any executions')
+			// this.log('Did not find any executions')
 			return { start: datetime.getTime(), end: datetime.getTime(), timeline: [], readableTimeline: [] }
 		}
 
@@ -254,7 +254,7 @@ export class RecurrenceParser {
 			}
 		}
 
-		this.log('Building timeline for ', new Date(firstExecution).toLocaleString())
+		// this.log('Building timeline for ', new Date(firstExecution).toLocaleString())
 
 		if (element.type === ScheduleType.File) {
 			addFile(element)
@@ -264,7 +264,7 @@ export class RecurrenceParser {
 			addFolder(element)
 		}
 
-		this.log('Built timeline: ', JSON.stringify(timeline))
+		// this.log('Built timeline: ', JSON.stringify(timeline))
 
 		return { start: firstExecution, end, timeline, readableTimeline }
 	}

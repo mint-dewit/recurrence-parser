@@ -84,7 +84,7 @@ test('getFirstExecution - next week', () => {
 
 	const firstExec = getFirstExecution(element, now)
 
-	expect(firstExec).toBe(new Date('2020-08-23 18:00:00').getTime())
+	expect(firstExec).toBe(new Date('2020-08-24 18:00:00').getTime())
 })
 test('getFirstExecution - last week', () => {
 	const now = new DateObj('2020-08-18 15:00:00')
@@ -96,7 +96,7 @@ test('getFirstExecution - last week', () => {
 
 	const firstExec = getFirstExecution(element, now)
 
-	expect(firstExec).toBe(new Date('2021-08-15 18:00:00').getTime())
+	expect(firstExec).toBe(new Date('2021-08-16 18:00:00').getTime())
 })
 
 test('getFirstExecution - dates', () => {

@@ -144,7 +144,7 @@ describe('default schedule', () => {
 	parser.schedule = schedule
 
 	test('min schedule', () => {
-		const result = parser.getNextTimeline(new DateObj('2020-8-19 10:00:00'))
+		const result = parser.getNextTimeline(new DateObj('2020-8-19 10:00:00')) // wednesday week 34
 
 		expect(result.readableTimeline).toEqual([
 			{ label: 'clip1', start: new Date('2020-8-19 11:00:00').getTime(), duration: 11 * 1000 },
@@ -156,7 +156,7 @@ describe('default schedule', () => {
 		])
 	})
 	test('time based entry', () => {
-		const result2 = parser.getNextTimeline(new DateObj('2020-8-19 14:00:00'))
+		const result2 = parser.getNextTimeline(new DateObj('2020-8-19 14:00:00')) // wednesday week 34
 		expect(result2.readableTimeline).toEqual([
 			{ label: 'clip1', start: new Date('2020-8-19 15:00:00').getTime(), duration: 11 * 1000 },
 			{ label: 'folderA/clip2', start: new Date('2020-8-19 15:00:11').getTime(), duration: 13 * 1000 },
@@ -168,7 +168,7 @@ describe('default schedule', () => {
 		])
 	})
 	test('day based entry', () => {
-		const result3 = parser.getNextTimeline(new DateObj('2020-8-20 10:00:00'))
+		const result3 = parser.getNextTimeline(new DateObj('2020-8-20 10:00:00')) // thursday week 34
 		expect(result3.readableTimeline).toEqual([
 			{ label: 'clip1', start: new Date('2020-8-20 11:00:00').getTime(), duration: 11 * 1000 },
 			{ label: 'folderA/clip1', start: new Date('2020-8-20 11:00:11').getTime(), duration: 11 * 1000 },
@@ -180,7 +180,7 @@ describe('default schedule', () => {
 		])
 	})
 	test('day and time based entry', () => {
-		const result4 = parser.getNextTimeline(new DateObj('2020-8-20 14:00:00'))
+		const result4 = parser.getNextTimeline(new DateObj('2020-8-20 14:00:00')) // thursday week 34
 		expect(result4.readableTimeline).toEqual([
 			{ label: 'clip1', start: new Date('2020-8-20 15:00:00').getTime(), duration: 11 * 1000 },
 			{ label: 'folderA/clip1', start: new Date('2020-8-20 15:00:11').getTime(), duration: 11 * 1000 },
@@ -217,7 +217,7 @@ test('2 folders with days set play within 24hrs', () => {
 	const parser = getParser()
 	parser.schedule = schedule
 
-	const result = parser.getNextTimeline(new DateObj('2020-8-20 14:00:00'))
+	const result = parser.getNextTimeline(new DateObj('2020-8-20 14:00:00')) // thursday week 34
 
 	expect(result.readableTimeline).toEqual([
 		{ label: 'folderA/clip1', start: new Date('2020-8-20 15:00:00').getTime(), duration: 11 * 1000 },
@@ -225,7 +225,7 @@ test('2 folders with days set play within 24hrs', () => {
 		{ label: 'folderA/clip3', start: new Date('2020-8-20 15:00:24').getTime(), duration: 15 * 1000 }
 	])
 
-	const result2 = parser.getNextTimeline(new DateObj('2020-8-20 15:01:00'))
+	const result2 = parser.getNextTimeline(new DateObj('2020-8-20 15:01:00')) // thursday week 34
 	expect(result2.readableTimeline).toEqual([
 		{ label: 'folderB/clip1', start: new Date('2020-8-21 13:00:00').getTime(), duration: 11 * 1000 },
 		{ label: 'folderB/clip2', start: new Date('2020-8-21 13:00:11').getTime(), duration: 13 * 1000 },
@@ -257,7 +257,7 @@ test('same start time inside group', () => {
 	const parser = getParser()
 	parser.schedule = schedule
 
-	const result = parser.getNextTimeline(new DateObj('2020-8-20 14:00:00'))
+	const result = parser.getNextTimeline(new DateObj('2020-8-20 14:00:00')) // thursday week 34
 
 	expect(result.readableTimeline).toEqual([
 		{ label: 'clip1', start: new Date('2020-8-20 15:00:00').getTime(), duration: 11 * 1000 },
@@ -285,7 +285,7 @@ test('same start time inside root', () => {
 	const parser = getParser()
 	parser.schedule = schedule
 
-	const result = parser.getNextTimeline(new DateObj('2020-8-20 14:00:00'))
+	const result = parser.getNextTimeline(new DateObj('2020-8-20 14:00:00')) // thursday week 34
 
 	expect(result.readableTimeline).toEqual([
 		{ label: 'clip1', start: new Date('2020-8-20 15:00:00').getTime(), duration: 11 * 1000 },
@@ -313,7 +313,7 @@ test('overlapping - first takes priority', () => {
 	const parser = getParser()
 	parser.schedule = schedule
 
-	const result = parser.getNextTimeline(new DateObj('2020-8-20 14:00:00'))
+	const result = parser.getNextTimeline(new DateObj('2020-8-20 14:00:00')) // thursday week 34
 
 	expect(result.readableTimeline).toEqual([
 		{ label: 'clip1', start: new Date('2020-8-20 15:00:00').getTime(), duration: 11 * 1000 }
