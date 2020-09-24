@@ -30,7 +30,7 @@ jobs:
           at: ~/project
       - run: yarn install
       - run: yarn validate:dependencies
-  Test node-8:
+  Test node-12:
     <<: *defaults
     steps:
       - attach_workspace:
@@ -107,9 +107,12 @@ workflows:
   Test build and deploy(master only):
     jobs:
       - Checkout Code
-      # - Check for vulnerabilities:
-      #     requires:
-      #       - Checkout Code
+      - Test node-12:
+          requires:
+            - Checkout Code
+      - Check for vulnerabilities:
+          requires:
+            - Checkout Code
       # - Send Coverage:
       #     requires:
       #       - Check for vulnerabilities
@@ -122,6 +125,7 @@ workflows:
           requires:
             # - Check for vulnerabilities
             - Checkout Code
+            - Test node-12
           filters:
             branches:
               only:
