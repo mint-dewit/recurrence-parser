@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.1](https://github.com/baltedewit/recurrence-parser/compare/0.5.0...0.5.1) (2020-09-24)
+
+
+### Bug Fixes
+
+* return all elements with same start time ([d998443](https://github.com/baltedewit/recurrence-parser/commit/d998443f5d98c6e1190abefc69a3eaad48655105))
+* start next day at midnight ([e83285c](https://github.com/baltedewit/recurrence-parser/commit/e83285ca086d4c6b4101f3f9c08aba7af1f24297))
+* week numbers according to ISO spec ([826052e](https://github.com/baltedewit/recurrence-parser/commit/826052e0e2eaec8728deed3acb567cd8b28a8003))
+
+
+
 # [0.5.0](https://github.com/baltedewit/recurrence-parser/compare/0.4.2...0.5.0) (2020-07-27)
 
 
