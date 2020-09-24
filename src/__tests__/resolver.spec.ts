@@ -159,6 +159,36 @@ test('getFirstExecution - weeks + daterange', () => {
 
 	expect(firstExec).toBe(new Date('2020-08-25 18:00:00').getTime())
 })
+test('getFirstExecution - days + daterange', () => {
+	const now = new DateObj('2020-08-18 15:00:00')
+	const element: ScheduleElement = {
+		type: ScheduleType.File,
+		times: ['18:00:00'],
+		dates: [
+			['2020-08-23', '2020-08-31']
+		],
+		days: [2]
+	}
+
+	const firstExec = getFirstExecution(element, now)
+
+	expect(firstExec).toBe(new Date('2020-08-25 18:00:00').getTime())
+})
+test('getFirstExecution - days + daterange', () => {
+	const now = new DateObj('2020-08-18 15:00:00')
+	const element: ScheduleElement = {
+		type: ScheduleType.File,
+		times: ['18:00:00'],
+		dates: [
+			['2020-09-20', '2020-10-04']
+		],
+		days: [2]
+	}
+
+	const firstExec = getFirstExecution(element, now)
+
+	expect(firstExec).toBe(new Date('2020-09-22 18:00:00').getTime())
+})
 test('getFirstExecution - days + weeks', () => {
 	const now = new DateObj('2020-08-18 15:00:00')
 	const element: ScheduleElement = {

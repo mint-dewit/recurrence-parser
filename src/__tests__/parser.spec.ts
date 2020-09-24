@@ -319,3 +319,27 @@ test('overlapping - first takes priority', () => {
 		{ label: 'clip1', start: new Date('2020-8-20 15:00:00').getTime(), duration: 11 * 1000 }
 	])
 })
+
+test('day + daterange before 10th of the month', () => {
+	const schedule: Array<ScheduleElement> = [
+		{
+			type: ScheduleType.File,
+			path: 'clip1',
+			times: [
+				'15:00:00'
+			],
+			days: [1],
+			dates: [
+				['2020-09-20', '2020-10-04']
+			]
+		},
+	]
+	const parser = getParser()
+	parser.schedule = schedule
+
+	const result = parser.getNextTimeline(new DateObj('2020-8-20 14:00:00')) // thursday week 34
+
+	expect(result.readableTimeline).toEqual([
+		{ label: 'clip1', start: new Date('2020-9-21 15:00:00').getTime(), duration: 11 * 1000 }
+	])
+})
