@@ -332,7 +332,7 @@ test('day + daterange before 10th of the month', () => {
 			dates: [
 				['2020-09-20', '2020-10-04']
 			]
-		},
+		}
 	]
 	const parser = getParser()
 	parser.schedule = schedule
