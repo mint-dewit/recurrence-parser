@@ -25,17 +25,91 @@ test('getFirstExecution - time tomorrow', () => {
 	expect(firstExec).toBe(new Date('2020-08-19 09:00:00').getTime())
 })
 
-test('getFirstExecution - day', () => {
-	const now = new DateObj('2020-08-18 15:00:00')
-	const element: ScheduleElement = {
-		type: ScheduleType.File,
-		times: ['18:00:00'],
-		days: [3]
-	}
+describe('getFirstExeuction - weekdays', () => {
+	test('sunday', () => {
+		const now = new DateObj('2020-08-18 15:00:00')
+		const element: ScheduleElement = {
+			type: ScheduleType.File,
+			times: ['18:00:00'],
+			days: [0]
+		}
 
-	const firstExec = getFirstExecution(element, now)
+		const firstExec = getFirstExecution(element, now)
 
-	expect(firstExec).toBe(new Date('2020-08-19 18:00:00').getTime())
+		expect(firstExec).toBe(new Date('2020-08-23 18:00:00').getTime())
+	})
+	test('monday', () => {
+		const now = new DateObj('2020-08-18 15:00:00')
+		const element: ScheduleElement = {
+			type: ScheduleType.File,
+			times: ['18:00:00'],
+			days: [1]
+		}
+
+		const firstExec = getFirstExecution(element, now)
+
+		expect(firstExec).toBe(new Date('2020-08-24 18:00:00').getTime())
+	})
+	test('tuesday', () => {
+		const now = new DateObj('2020-08-18 15:00:00')
+		const element: ScheduleElement = {
+			type: ScheduleType.File,
+			times: ['18:00:00'],
+			days: [2]
+		}
+
+		const firstExec = getFirstExecution(element, now)
+
+		expect(firstExec).toBe(new Date('2020-08-18 18:00:00').getTime())
+	})
+	test('wednesday', () => {
+		const now = new DateObj('2020-08-18 15:00:00')
+		const element: ScheduleElement = {
+			type: ScheduleType.File,
+			times: ['18:00:00'],
+			days: [3]
+		}
+
+		const firstExec = getFirstExecution(element, now)
+
+		expect(firstExec).toBe(new Date('2020-08-19 18:00:00').getTime())
+	})
+	test('thursday', () => {
+		const now = new DateObj('2020-08-18 15:00:00')
+		const element: ScheduleElement = {
+			type: ScheduleType.File,
+			times: ['18:00:00'],
+			days: [4]
+		}
+
+		const firstExec = getFirstExecution(element, now)
+
+		expect(firstExec).toBe(new Date('2020-08-20 18:00:00').getTime())
+	})
+	test('friday', () => {
+		const now = new DateObj('2020-08-18 15:00:00')
+		const element: ScheduleElement = {
+			type: ScheduleType.File,
+			times: ['18:00:00'],
+			days: [5]
+		}
+
+		const firstExec = getFirstExecution(element, now)
+
+		expect(firstExec).toBe(new Date('2020-08-21 18:00:00').getTime())
+	})
+	test('saturday', () => {
+		const now = new DateObj('2020-08-18 15:00:00')
+		const element: ScheduleElement = {
+			type: ScheduleType.File,
+			times: ['18:00:00'],
+			days: [6]
+		}
+
+		const firstExec = getFirstExecution(element, now)
+
+		expect(firstExec).toBe(new Date('2020-08-22 18:00:00').getTime())
+	})
 })
 test('getFirstExecution - days = today', () => {
 	const now = new DateObj('2020-08-18 15:00:00')
