@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.2](https://github.com/baltedewit/recurrence-parser/compare/0.5.1...0.5.2) (2020-09-26)
+
+
+### Bug Fixes
+
+* sunday as a day option ([9424ddb](https://github.com/baltedewit/recurrence-parser/commit/9424ddbb9e0aafd96b38c770fbea090e5cd8278c))
+
+
+
 ## [0.5.1](https://github.com/baltedewit/recurrence-parser/compare/0.5.0...0.5.1) (2020-09-24)
 
 
