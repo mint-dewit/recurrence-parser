@@ -69,9 +69,9 @@ describe('getFirstExeuction - weekdays', () => {
 			times: ['18:00:00'],
 			days: [3]
 		}
-	
+
 		const firstExec = getFirstExecution(element, now)
-	
+
 		expect(firstExec).toBe(new Date('2020-08-19 18:00:00').getTime())
 	})
 	test('thursday', () => {
@@ -81,9 +81,9 @@ describe('getFirstExeuction - weekdays', () => {
 			times: ['18:00:00'],
 			days: [4]
 		}
-	
+
 		const firstExec = getFirstExecution(element, now)
-	
+
 		expect(firstExec).toBe(new Date('2020-08-20 18:00:00').getTime())
 	})
 	test('friday', () => {
@@ -93,9 +93,9 @@ describe('getFirstExeuction - weekdays', () => {
 			times: ['18:00:00'],
 			days: [5]
 		}
-	
+
 		const firstExec = getFirstExecution(element, now)
-	
+
 		expect(firstExec).toBe(new Date('2020-08-21 18:00:00').getTime())
 	})
 	test('saturday', () => {
@@ -105,9 +105,9 @@ describe('getFirstExeuction - weekdays', () => {
 			times: ['18:00:00'],
 			days: [6]
 		}
-	
+
 		const firstExec = getFirstExecution(element, now)
-	
+
 		expect(firstExec).toBe(new Date('2020-08-22 18:00:00').getTime())
 	})
 })
