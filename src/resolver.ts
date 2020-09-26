@@ -3,7 +3,6 @@ import { ScheduleElement } from './interface'
 
 export function getFirstExecution (object: ScheduleElement, now: DateObj): number {
 	if (isNaN(now.valueOf())) throw new Error('Parameter now is an invalid date')
-	let firstDay: DateObj
 	let firstDateRange: Array<DateObj>
 	let firstTime
 	let outOfRange = false
@@ -51,12 +50,15 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 	let getNextDay = () => {
 		for (let day of object.days!) {
 			if (day === start.getDay()) { // first day
-				firstDay = new DateObj(start.getTime()).setWeek(start.getWeek()) // set to beginning of the week
-				firstDay.setMilliseconds((day - 1) * 86400000) // set to start of day
 				break
 			} else if (day > start.getDay()) { // first day
-				firstDay = new DateObj(start.getTime()).setWeek(start.getWeek()) // set to beginning of the week
+				const firstDay = new DateObj(start.getTime()).setWeek(start.getWeek()) // set to beginning of the week
 				firstDay.setMilliseconds((day - 1) * 86400000) // set to start of day
+				start = firstDay
+				break
+			} else if (day === 0 && 7 > start.getDay()) { // weeks treat monday as the first day
+				const firstDay = new DateObj(start.getTime()).setWeek(start.getWeek()) // set to beginning of the week
+				firstDay.setMilliseconds(6 * 86400000) // set to start of sunday
 				start = firstDay
 				break
 			}
