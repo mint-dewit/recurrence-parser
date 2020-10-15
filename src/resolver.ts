@@ -92,7 +92,15 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 	}
 
 	if (object.days && object.days.length > 0 && object.days.length !== 7) {
-		object.days.sort()
+		// assert sorted array with sunday last
+		object.days.sort((a, b) => {
+			if (a === 0) {
+				return 1
+			} else if (b === 0) {
+				return -1
+			}
+			return a - b
+		})
 		object.days = object.days.filter(d => d >= 0 && d <= 6)
 		getNextDay()
 		if (!new Set(object.days).has(start.getDay())) {
