@@ -45,18 +45,22 @@ export class RecurrenceParser {
 		const executions: { [time: number]: Array<ScheduleElement> } = {}
 
 		const recurseElement = (el: ScheduleElement, start: DateObj) => {
-			let executionTime = getFirstExecution(el, start)
+			try {
+				let executionTime = getFirstExecution(el, start)
 
-			if (el.type !== ScheduleType.Group) {
-				if (!executions[executionTime]) executions[executionTime] = []
+				if (el.type !== ScheduleType.Group) {
+					if (!executions[executionTime]) executions[executionTime] = []
 
-				executions[executionTime].push(el)
-			}
-
-			if (el.children) {
-				for (let child of el.children) {
-					recurseElement(child, new DateObj(executionTime))
+					executions[executionTime].push(el)
 				}
+
+				if (el.children) {
+					for (let child of el.children) {
+						recurseElement(child, new DateObj(executionTime))
+					}
+				}
+			} catch (e) {
+				// TODO - let the user know some part of the schedule is gone bad?
 			}
 		}
 
