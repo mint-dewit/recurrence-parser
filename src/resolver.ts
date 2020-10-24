@@ -5,7 +5,6 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 	if (isNaN(now.valueOf())) throw new Error('Parameter now is an invalid date')
 	let firstDateRange: Array<DateObj>
 	let firstTime
-	let outOfRange = false
 
 	let start = now
 
@@ -27,7 +26,7 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 		}
 		if (!hasFound) { // we've recursed through everything and no date was found:
 			console.log(`WARNING: No execution time was found for ${object.path || object._id || 'unkown'}!`)
-			outOfRange = true // @todo: this breaks
+			throw new Error('Out of range')
 		}
 	}
 	let getNextWeek = () => {
@@ -42,7 +41,6 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 		if (firstDateRange) {
 			while (start > firstDateRange[1]) {
 				getNextDateRange()
-				if (outOfRange) return
 				getNextWeek()
 			}
 		}
@@ -66,7 +64,6 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 		if (firstDateRange) {
 			while (start > firstDateRange[1]) { // current start is past daterange
 				getNextDateRange()
-				if (outOfRange) return
 				if (object.weeks) {
 					getNextWeek()
 				}
@@ -79,7 +76,6 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 		object.dates.sort()
 		object.dates = object.dates.filter(dates => dates[0] <= dates[1])
 		getNextDateRange()
-		if (outOfRange) return Number.MAX_SAFE_INTEGER
 		// what to do when all is in the past?
 		// console.log(`Parsed date ranges for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 	}
@@ -92,7 +88,15 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 	}
 
 	if (object.days && object.days.length > 0 && object.days.length !== 7) {
-		object.days.sort()
+		// assert sorted array with sunday last
+		object.days.sort((a, b) => {
+			if (a === 0) {
+				return 1
+			} else if (b === 0) {
+				return -1
+			}
+			return a - b
+		})
 		object.days = object.days.filter(d => d >= 0 && d <= 6)
 		getNextDay()
 		if (!new Set(object.days).has(start.getDay())) {
@@ -121,7 +125,6 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 		// console.log(`Parsed times for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 	}
 
-	if (outOfRange) return Number.MAX_SAFE_INTEGER
 	return start.getTime()
 }
 
