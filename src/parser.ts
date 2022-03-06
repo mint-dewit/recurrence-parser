@@ -94,6 +94,7 @@ export class RecurrenceParser {
 				const tDiff = (res.end - res.start)
 				end += tDiff
 				res.timeline[0].enable = {
+					...res.timeline[0].enable,
 					start: `#${timeline[timeline.length - 1].id}.end`
 				}
 				timeline = [ ...timeline, ...res.timeline ]
