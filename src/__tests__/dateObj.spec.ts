@@ -37,7 +37,7 @@ describe('DateObj', () => {
 	})
 
 	test('setWeek', () => {
-		let d = new DateObj('2020-08-08')
+		const d = new DateObj('2020-08-08')
 		d.setWeek(1)
 		// expect(d.getTime()).toEqual(new Date('2019-12-29 23:00:00Z').getTime())
 		expect(d.getWeek()).toEqual(1)
@@ -53,7 +53,7 @@ describe('DateObj', () => {
 	})
 
 	test('next year', () => {
-		let d = new DateObj('2020-08-31')
+		const d = new DateObj('2020-08-31')
 		d.setFullYear(d.getFullYear() + 1, 0, 1)
 		d.setHours(0, 0, 0, 0)
 		expect(d.getWeek()).toEqual(53)

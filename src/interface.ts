@@ -4,12 +4,12 @@ export enum ScheduleType {
 	Group = 'group',
 	Folder = 'folder',
 	File = 'file',
-	Input = 'input'
+	Input = 'input',
 }
 
 export enum LogLevel {
 	Production = 1,
-	Debug = 0
+	Debug = 0,
 }
 
 export interface ScheduleElement {
@@ -26,7 +26,7 @@ export interface ScheduleElement {
 
 	days?: Array<number>
 	weeks?: Array<number>
-	dates?: Array<[ string, string ]>
+	dates?: Array<[string, string]>
 	times?: Array<string>
 
 	children?: Array<ScheduleElement>
@@ -47,11 +47,11 @@ export interface ResolvedElement {
 
 export enum LiveMode {
 	CasparCG = 'casparcg',
-	ATEM = 'atem'
+	ATEM = 'atem',
 }
 export enum FolderSort {
 	NameAsc = 'name_asc',
 	NameDesc = 'name_desc',
 	DateAsc = 'date_asc',
-	DateDesc = 'date_desc'
+	DateDesc = 'date_desc',
 }

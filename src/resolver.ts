@@ -1,36 +1,37 @@
 import { DateObj } from './util'
 import { ScheduleElement } from './interface'
 
-export function getFirstExecution (object: ScheduleElement, now: DateObj): number {
+export function getFirstExecution(object: ScheduleElement, now: DateObj): number {
 	if (isNaN(now.valueOf())) throw new Error('Parameter now is an invalid date')
 	let firstDateRange: Array<DateObj>
 	let firstTime
 
 	let start = now
 
-	let getNextDateRange = () => {
+	const getNextDateRange = () => {
 		let hasFound = false
-		for (let dates of object.dates!) {
+		for (const dates of object.dates!) {
 			const begin = new DateObj(dates[0])
 			const end = new DateObj(dates[1])
 			if (begin <= start && end >= start) {
-				firstDateRange = [ new DateObj(start), end ]
+				firstDateRange = [new DateObj(start), end]
 				hasFound = true
 				break
 			} else if (begin >= start) {
-				firstDateRange = [ begin, end ]
+				firstDateRange = [begin, end]
 				start = firstDateRange[0]
 				hasFound = true
 				break
 			}
 		}
-		if (!hasFound) { // we've recursed through everything and no date was found:
+		if (!hasFound) {
+			// we've recursed through everything and no date was found:
 			console.log(`WARNING: No execution time was found for ${object.path || object._id || 'unkown'}!`)
 			throw new Error('Out of range')
 		}
 	}
-	let getNextWeek = () => {
-		const firstWeek = object.weeks!.find(w => w >= start.getWeek())
+	const getNextWeek = () => {
+		const firstWeek = object.weeks!.find((w) => w >= start.getWeek())
 		if (firstWeek && firstWeek > start.getWeek()) {
 			start = new DateObj().setWeek(firstWeek)
 		} else if (!firstWeek) {
@@ -45,16 +46,19 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 			}
 		}
 	}
-	let getNextDay = () => {
-		for (let day of object.days!) {
-			if (day === start.getDay()) { // first day
+	const getNextDay = () => {
+		for (const day of object.days!) {
+			if (day === start.getDay()) {
+				// first day
 				break
-			} else if (day > start.getDay()) { // first day
+			} else if (day > start.getDay()) {
+				// first day
 				const firstDay = new DateObj(start.getTime()).setWeek(start.getWeek()) // set to beginning of the week
 				firstDay.setMilliseconds((day - 1) * 86400000) // set to start of day
 				start = firstDay
 				break
-			} else if (day === 0 && 7 > start.getDay()) { // weeks treat monday as the first day
+			} else if (day === 0 && 7 > start.getDay()) {
+				// weeks treat monday as the first day
 				const firstDay = new DateObj(start.getTime()).setWeek(start.getWeek()) // set to beginning of the week
 				firstDay.setMilliseconds(6 * 86400000) // set to start of sunday
 				start = firstDay
@@ -62,7 +66,8 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 			}
 		}
 		if (firstDateRange) {
-			while (start > firstDateRange[1]) { // current start is past daterange
+			while (start > firstDateRange[1]) {
+				// current start is past daterange
 				getNextDateRange()
 				if (object.weeks) {
 					getNextWeek()
@@ -74,7 +79,7 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 
 	if (object.dates && object.dates.length > 0) {
 		object.dates.sort()
-		object.dates = object.dates.filter(dates => dates[0] <= dates[1])
+		object.dates = object.dates.filter((dates) => dates[0] <= dates[1])
 		getNextDateRange()
 		// what to do when all is in the past?
 		// console.log(`Parsed date ranges for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
@@ -82,7 +87,7 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 
 	if (object.weeks && object.weeks.length > 0) {
 		object.weeks.sort()
-		object.weeks = object.weeks.filter(w => w >= 0 && w <= 53)
+		object.weeks = object.weeks.filter((w) => w >= 0 && w <= 53)
 		getNextWeek()
 		// console.log(`Parsed weeks for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 	}
@@ -97,7 +102,7 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 			}
 			return a - b
 		})
-		object.days = object.days.filter(d => d >= 0 && d <= 6)
+		object.days = object.days.filter((d) => d >= 0 && d <= 6)
 		getNextDay()
 		if (!new Set(object.days).has(start.getDay())) {
 			start.setWeek(start.getWeek() + 1)
@@ -108,8 +113,8 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 
 	if (object.times && object.times.length > 0) {
 		object.times.sort()
-		for (let time of object.times) {
-			let date = timeToDate(time, start)
+		for (const time of object.times) {
+			const date = timeToDate(time, start)
 			// console.log(`Parsed time is at ${date.toLocaleString()}, start is at ${start.toLocaleString()}`)
 			if (date >= start) {
 				start = date
@@ -117,7 +122,8 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 				break
 			}
 		}
-		if (typeof firstTime === 'undefined') { // pass midnight
+		if (typeof firstTime === 'undefined') {
+			// pass midnight
 			start.setHours(0, 0, 0, 0)
 			start.setMilliseconds(86400000)
 			return getFirstExecution(object, start)
@@ -128,9 +134,9 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 	return start.getTime()
 }
 
-export function timeToDate (time: string, date: Date): DateObj {
-	let timeParts = time.split(':')
-	let dateObj = new DateObj(date)
+export function timeToDate(time: string, date: Date): DateObj {
+	const timeParts = time.split(':')
+	const dateObj = new DateObj(date)
 	dateObj.setHours(Number(timeParts[0]))
 	dateObj.setMinutes(Number(timeParts[1]))
 	dateObj.setSeconds(Number(timeParts[2]))

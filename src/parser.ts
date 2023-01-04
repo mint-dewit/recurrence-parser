@@ -4,7 +4,7 @@ import { ScheduleElement, LiveMode, BuildTimelineResult, ResolvedElement, Schedu
 import { getFirstExecution } from './resolver'
 
 export class RecurrenceParser {
-	schedule: Array<ScheduleElement>
+	schedule: Array<ScheduleElement> = []
 	curDate: () => DateObj
 	log: (arg1: any, arg2?: any, arg3?: any) => void
 	getMediaDuration: (name: string) => number
@@ -16,17 +16,23 @@ export class RecurrenceParser {
 	atemAudioLayer = 'ATEM_AUDIO_'
 	liveMode = LiveMode.CasparCG
 
-	constructor (getMediaDuration: (name: string) => number, getMediaTime: (name: string) => number, getFolderContents: (name: string) => Array<string>, curDate?: () => DateObj, externalLog?: (arg1: any, arg2?: any, arg3?: any) => void) {
+	constructor(
+		getMediaDuration: (name: string) => number,
+		getMediaTime: (name: string) => number,
+		getFolderContents: (name: string) => Array<string>,
+		curDate?: () => DateObj,
+		externalLog?: (...args: any[]) => void
+	) {
 		if (curDate) {
 			this.curDate = curDate
 		} else {
-			this.curDate = this._curDate
+			this.curDate = () => this._curDate()
 		}
 
 		if (externalLog) {
 			this.log = externalLog
 		} else {
-			this.log = this._log
+			this.log = (...args: any[]) => this._log(...args)
 		}
 
 		this.getMediaDuration = getMediaDuration
@@ -36,7 +42,7 @@ export class RecurrenceParser {
 		// this.log('Initialized the recurrence parser')
 	}
 
-	getNextTimeline (datetime?: DateObj): BuildTimelineResult {
+	getNextTimeline(datetime?: DateObj): BuildTimelineResult {
 		if (!datetime) {
 			datetime = this.curDate()
 		}
@@ -46,7 +52,7 @@ export class RecurrenceParser {
 
 		const recurseElement = (el: ScheduleElement, start: DateObj) => {
 			try {
-				let executionTime = getFirstExecution(el, start)
+				const executionTime = getFirstExecution(el, start)
 
 				if (el.type !== ScheduleType.Group) {
 					if (!executions[executionTime]) executions[executionTime] = []
@@ -55,7 +61,7 @@ export class RecurrenceParser {
 				}
 
 				if (el.children) {
-					for (let child of el.children) {
+					for (const child of el.children) {
 						recurseElement(child, new DateObj(executionTime))
 					}
 				}
@@ -77,8 +83,8 @@ export class RecurrenceParser {
 		const firstExecution = Number(executionTimes.sort()[0])
 		const firstElement = executions[firstExecution]
 
-		let start: number = 0
-		let end: number = 0
+		let start = 0
+		let end = 0
 		let timeline: Array<TimelineObject> = []
 		let readableTimeline: Array<ResolvedElement> = []
 
@@ -91,28 +97,26 @@ export class RecurrenceParser {
 				readableTimeline = res.readableTimeline
 			} else if (res.timeline.length) {
 				const oldLength = end - start
-				const tDiff = (res.end - res.start)
+				const tDiff = res.end - res.start
 				end += tDiff
 				res.timeline[0].enable = {
-					start: `#${timeline[timeline.length - 1].id}.end`
+					start: `#${timeline[timeline.length - 1].id}.end`,
 				}
-				timeline = [ ...timeline, ...res.timeline ]
-				res.readableTimeline.map(o => {
+				timeline = [...timeline, ...res.timeline]
+				res.readableTimeline.map((o) => {
 					o.start += oldLength
 					return o
 				})
-				readableTimeline = [
-					...readableTimeline,
-					...res.readableTimeline
-				]
+				readableTimeline = [...readableTimeline, ...res.readableTimeline]
 			}
 		}
 
 		return { start, end, timeline, readableTimeline }
 	}
 
-	buildTimeline (element: ScheduleElement, firstExecution: number): BuildTimelineResult {
-		if (isNaN(new Date(firstExecution).valueOf())) return { start: Date.now(), end: Date.now(), timeline: [], readableTimeline: [] }
+	buildTimeline(element: ScheduleElement, firstExecution: number): BuildTimelineResult {
+		if (isNaN(new Date(firstExecution).valueOf()))
+			return { start: Date.now(), end: Date.now(), timeline: [], readableTimeline: [] }
 		const timeline: Array<TimelineObject> = []
 		const readableTimeline: Array<ResolvedElement> = []
 		let end = firstExecution
@@ -120,100 +124,111 @@ export class RecurrenceParser {
 			const duration = this.getMediaDuration(element.path!) * 1000
 			if (!duration) return // media file not found.
 			end += duration
-			const classes = [ 'PLAYOUT' ]
+			const classes = ['PLAYOUT']
 			if (element.audio === false) classes.push('MUTED')
 			timeline.push({
 				id: Math.random().toString(35).substr(2, 7),
-				enable: timeline.length === 0 ? {
-					start: firstExecution,
-					duration
-				} : {
-					start: `#${timeline[timeline.length - 1].id}.end`,
-					duration
-				},
+				enable:
+					timeline.length === 0
+						? {
+								start: firstExecution,
+								duration,
+						  }
+						: {
+								start: `#${timeline[timeline.length - 1].id}.end`,
+								duration,
+						  },
 				layer: this.layer,
 				content: {
 					deviceType: 1, // casparcg
 					type: 'media',
 					muted: element.audio === false ? true : false,
 					file: element.path,
-					mixer: element.audio === false ? {
-						volume: 0
-					} : undefined
+					mixer:
+						element.audio === false
+							? {
+									volume: 0,
+							  }
+							: undefined,
 				},
 				priority: element.priority || 100,
-				classes
+				classes,
 			})
 			readableTimeline.push({
 				label: element.path || 'Unknown',
 				start: end - duration,
-				duration
+				duration,
 			})
-
 		}
 		const addLive = (element: ScheduleElement) => {
 			const duration = (element.duration || 0) * 1000
 			if (duration === 0) return // no length means do not play
 			end += duration
-			const classes = [ 'PLAYOUT', 'LIVE' ]
+			const classes = ['PLAYOUT', 'LIVE']
 			if (element.audio === false) classes.push('MUTED')
 			const id = Math.random().toString(35).substr(2, 7)
 
 			if (this.liveMode === LiveMode.ATEM) {
 				timeline.push({
 					id: id,
-					enable: timeline.length === 0 ? {
-						start: firstExecution,
-						duration
-					} : {
-						start: `#${timeline[timeline.length - 1].id}.end`,
-						duration
-					},
+					enable:
+						timeline.length === 0
+							? {
+									start: firstExecution,
+									duration,
+							  }
+							: {
+									start: `#${timeline[timeline.length - 1].id}.end`,
+									duration,
+							  },
 					layer: this.atemLayer,
 					content: {
 						deviceType: 2,
 						type: 'me',
 
 						me: {
-							programInput: element.input || 0
-						}
+							programInput: element.input || 0,
+						},
 					},
 					priority: element.priority || 100,
-					classes
+					classes,
 				})
 				if (element.audio !== false) {
 					timeline.push({
 						id: Math.random().toString(35).substr(2, 7),
 						enable: {
-							while: '#' + id // parent id
+							while: '#' + id, // parent id
 						},
 						layer: this.atemAudioLayer + element.input,
 						content: {
 							deviceType: 2,
 							type: 'audioChan',
 							audioChannel: {
-								mixOption: 1
-							}
+								mixOption: 1,
+							},
 						},
 						priority: element.priority || 100,
-						classes: [ ...classes, 'LIVE_AUDIO' ]
+						classes: [...classes, 'LIVE_AUDIO'],
 					})
 				}
 				readableTimeline.push({
 					label: 'Atem input ' + (element.input || 0),
 					start: end - duration,
-					duration
+					duration,
 				})
 			} else {
 				timeline.push({
 					id,
-					enable: timeline.length === 0 ? {
-						start: firstExecution,
-						duration
-					} : {
-						start: `#${timeline[timeline.length - 1].id}.end`,
-						duration
-					},
+					enable:
+						timeline.length === 0
+							? {
+									start: firstExecution,
+									duration,
+							  }
+							: {
+									start: `#${timeline[timeline.length - 1].id}.end`,
+									duration,
+							  },
 					layer: this.layer,
 					content: {
 						deviceType: 1, // casparcg
@@ -221,17 +236,20 @@ export class RecurrenceParser {
 
 						muted: element.audio === false ? true : false,
 						device: element.input,
-						mixer: element.audio === false ? {
-							volume: 0
-						} : undefined
+						mixer:
+							element.audio === false
+								? {
+										volume: 0,
+								  }
+								: undefined,
 					},
 					priority: element.priority || 100,
-					classes
+					classes,
 				})
 				readableTimeline.push({
 					label: 'Decklink input ' + (element.input || 0),
 					start: end - duration,
-					duration
+					duration,
 				})
 			}
 		}
@@ -273,11 +291,11 @@ export class RecurrenceParser {
 		return { start: firstExecution, end, timeline, readableTimeline }
 	}
 
-	private _curDate () {
+	private _curDate() {
 		return new DateObj()
 	}
 
-	private _log (arg1: any, arg2?: any, arg3?: any) {
-		console.log(arg1, arg2 || null, arg3 || null)
+	private _log(...args: any[]) {
+		console.log(...args)
 	}
 }
