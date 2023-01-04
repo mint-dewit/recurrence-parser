@@ -7,7 +7,7 @@
 		"baseUrl": "./",
 		"paths": {
 			"*": ["./node_modules/*"],
-			"{{PACKAGE-NAME}}": ["./src/index.ts"]
+			"recurrence-parser": ["./src/index.ts"]
 		},
 		"types": ["node"]
 	}

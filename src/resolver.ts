@@ -33,10 +33,11 @@ export function getFirstExecution(object: ScheduleElement, now: DateObj): number
 	const getNextWeek = () => {
 		const firstWeek = object.weeks!.find((w) => w >= start.getWeek())
 		if (firstWeek && firstWeek > start.getWeek()) {
-			start = new DateObj().setWeek(firstWeek)
+			start = new DateObj(start).setWeek(firstWeek)
 		} else if (!firstWeek) {
+			const year = start.getFullYear()
 			start = new DateObj()
-			start.setFullYear(start.getFullYear() + 1, 0, 1)
+			start.setFullYear(year + 1, 0, 1)
 			start.setWeek(object.weeks![0])
 		}
 		if (firstDateRange) {
@@ -89,7 +90,7 @@ export function getFirstExecution(object: ScheduleElement, now: DateObj): number
 		object.weeks.sort()
 		object.weeks = object.weeks.filter((w) => w >= 0 && w <= 53)
 		getNextWeek()
-		// console.log(`Parsed weeks for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
+		console.log(`Parsed weeks for ${object.path || object._id || 'unkown'}, start is at ${start.toLocaleString()}`)
 	}
 
 	if (object.days && object.days.length > 0 && object.days.length !== 7) {
