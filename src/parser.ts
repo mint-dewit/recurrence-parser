@@ -1,6 +1,16 @@
 import { TimelineObject } from 'superfly-timeline'
 import { DateObj } from './util'
-import { ScheduleElement, LiveMode, BuildTimelineResult, ResolvedElement, ScheduleType, FolderSort } from './interface'
+import {
+	ScheduleElement,
+	LiveMode,
+	BuildTimelineResult,
+	ResolvedElement,
+	ScheduleType,
+	FolderSort,
+	FileElement,
+	LiveElement,
+	FolderElement,
+} from './interface'
 import { getFirstExecution } from './resolver'
 
 export class RecurrenceParser {
@@ -60,7 +70,7 @@ export class RecurrenceParser {
 					executions[executionTime].push(el)
 				}
 
-				if (el.children) {
+				if (el.type === ScheduleType.Group && el.children) {
 					for (const child of el.children) {
 						recurseElement(child, new DateObj(executionTime))
 					}
@@ -120,8 +130,8 @@ export class RecurrenceParser {
 		const timeline: Array<TimelineObject> = []
 		const readableTimeline: Array<ResolvedElement> = []
 		let end = firstExecution
-		const addFile = (element: ScheduleElement) => {
-			const duration = this.getMediaDuration(element.path!) * 1000
+		const addFile = (element: FileElement) => {
+			const duration = this.getMediaDuration(element.path) * 1000
 			if (!duration) return // media file not found.
 			end += duration
 			const classes = ['PLAYOUT']
@@ -160,7 +170,7 @@ export class RecurrenceParser {
 				duration,
 			})
 		}
-		const addLive = (element: ScheduleElement) => {
+		const addLive = (element: LiveElement) => {
 			const duration = (element.duration || 0) * 1000
 			if (duration === 0) return // no length means do not play
 			end += duration
@@ -253,8 +263,8 @@ export class RecurrenceParser {
 				})
 			}
 		}
-		const addFolder = (element: ScheduleElement) => {
-			const contents = this.getFolderContents(element.path!)
+		const addFolder = (element: FolderElement) => {
+			const contents = this.getFolderContents(element.path)
 			if (element.sort) {
 				contents.sort((a, b) => {
 					switch (element.sort) {
