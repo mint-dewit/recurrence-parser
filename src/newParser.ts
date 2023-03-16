@@ -2,12 +2,17 @@ import { ScheduleElement2 } from './interface'
 import { getFirstExecution } from './resolver'
 import { DateObj } from './util'
 
-// @todo - clone schedule first?
+export interface ExecutionTimesResult {
+	executions: Record<string, number>
+	errors: string[]
+}
+
 export function scheduleToExecutionTimes<T extends object>(
 	schedule: Array<ScheduleElement2<T>>,
 	datetime = Date.now()
-): Record<string, number> {
+): ExecutionTimesResult {
 	const executions: Record<string, number> = {}
+	const errors: string[] = []
 
 	const recurseElement = (el: ScheduleElement2<T>, start: DateObj) => {
 		try {
@@ -23,8 +28,8 @@ export function scheduleToExecutionTimes<T extends object>(
 					recurseElement(child, new DateObj(executionTime))
 				}
 			}
-		} catch {
-			// TODO - let the user know some part of the schedule is gone bad?
+		} catch (e) {
+			errors.push(el._id)
 		}
 	}
 
@@ -32,5 +37,5 @@ export function scheduleToExecutionTimes<T extends object>(
 		recurseElement(child, new DateObj(datetime))
 	}
 
-	return executions
+	return { executions, errors }
 }
