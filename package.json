@@ -8,6 +8,7 @@
 	"author": {
 		"name": "Balte de Wit"
 	},
+	"homepage": "https://github.com/baltedewit/recurrence-parser#readme",
 	"scripts": {
 		"info": "npm-scripts-info",
 		"build": "trash dist && tsc -p tsconfig.json",
