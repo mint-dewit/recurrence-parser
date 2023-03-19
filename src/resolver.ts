@@ -51,7 +51,10 @@ export function getFirstExecution(object: ScheduleElementTimings, now: DateObj):
 	}
 	const getNextDay = () => {
 		if (!object.days) return
-		for (const day of object.days) {
+		for (let iday = 0; iday < 7; iday++) {
+			const day = (iday + start.getDay()) % 7
+			if (!object.days.includes(day)) continue
+
 			if (day === start.getDay()) {
 				// first day
 				break
@@ -98,14 +101,8 @@ export function getFirstExecution(object: ScheduleElementTimings, now: DateObj):
 
 	if (object.days && object.days.length > 0 && object.days.length !== 7) {
 		// assert sorted array with sunday last
-		object.days.sort((a, b) => {
-			if (a === 0) {
-				return 1
-			} else if (b === 0) {
-				return -1
-			}
-			return a - b
-		})
+		object.days.sort()
+		// console.log(object.days)
 		object.days = object.days.filter((d) => d >= 0 && d <= 6)
 		getNextDay()
 		if (!new Set(object.days).has(start.getDay())) {

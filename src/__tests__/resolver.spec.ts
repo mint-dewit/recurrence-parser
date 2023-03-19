@@ -7,6 +7,7 @@ test('getFirstExecution - time today', () => {
 	const element: ScheduleElement = {
 		type: ScheduleType.File,
 		times: ['18:00:00'],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -18,6 +19,7 @@ test('getFirstExecution - time tomorrow', () => {
 	const element: ScheduleElement = {
 		type: ScheduleType.File,
 		times: ['09:00:00'],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -32,6 +34,7 @@ describe('getFirstExeuction - weekdays', () => {
 			type: ScheduleType.File,
 			times: ['18:00:00'],
 			days: [0],
+			path: '',
 		}
 
 		const firstExec = getFirstExecution(element, now)
@@ -44,6 +47,7 @@ describe('getFirstExeuction - weekdays', () => {
 			type: ScheduleType.File,
 			times: ['18:00:00'],
 			days: [1],
+			path: '',
 		}
 
 		const firstExec = getFirstExecution(element, now)
@@ -56,6 +60,7 @@ describe('getFirstExeuction - weekdays', () => {
 			type: ScheduleType.File,
 			times: ['18:00:00'],
 			days: [2],
+			path: '',
 		}
 
 		const firstExec = getFirstExecution(element, now)
@@ -68,6 +73,7 @@ describe('getFirstExeuction - weekdays', () => {
 			type: ScheduleType.File,
 			times: ['18:00:00'],
 			days: [3],
+			path: '',
 		}
 
 		const firstExec = getFirstExecution(element, now)
@@ -80,6 +86,7 @@ describe('getFirstExeuction - weekdays', () => {
 			type: ScheduleType.File,
 			times: ['18:00:00'],
 			days: [4],
+			path: '',
 		}
 
 		const firstExec = getFirstExecution(element, now)
@@ -92,6 +99,7 @@ describe('getFirstExeuction - weekdays', () => {
 			type: ScheduleType.File,
 			times: ['18:00:00'],
 			days: [5],
+			path: '',
 		}
 
 		const firstExec = getFirstExecution(element, now)
@@ -104,6 +112,7 @@ describe('getFirstExeuction - weekdays', () => {
 			type: ScheduleType.File,
 			times: ['18:00:00'],
 			days: [6],
+			path: '',
 		}
 
 		const firstExec = getFirstExecution(element, now)
@@ -112,19 +121,20 @@ describe('getFirstExeuction - weekdays', () => {
 	})
 
 	test('sunday + monday', () => {
-		let now = new DateObj('2020-08-18 15:00:00')
+		let now = new DateObj('2020-08-18 15:00:00') // wednesday
 		const element: ScheduleElement = {
 			type: ScheduleType.File,
 			times: ['18:00:00'],
 			days: [0, 1],
+			path: '',
 		}
 
 		let firstExec = getFirstExecution(element, now)
-		expect(firstExec).toBe(new Date('2020-08-23 18:00:00').getTime())
+		expect(firstExec).toBe(new Date('2020-08-23 18:00:00').getTime()) // sunday
 
 		now = new DateObj('2020-08-24 15:00:00')
 		firstExec = getFirstExecution(element, now)
-		expect(firstExec).toBe(new Date('2020-08-24 18:00:00').getTime())
+		expect(firstExec).toBe(new Date('2020-08-24 18:00:00').getTime()) // monday
 	})
 	test('sunday + wednesday', () => {
 		let now = new DateObj('2020-08-18 15:00:00')
@@ -132,6 +142,7 @@ describe('getFirstExeuction - weekdays', () => {
 			type: ScheduleType.File,
 			times: ['18:00:00'],
 			days: [0, 3],
+			path: '',
 		}
 
 		let firstExec = getFirstExecution(element, now)
@@ -147,6 +158,7 @@ describe('getFirstExeuction - weekdays', () => {
 			type: ScheduleType.File,
 			times: ['18:00:00'],
 			days: [2, 6],
+			path: '',
 		}
 
 		let firstExec = getFirstExecution(element, now)
@@ -163,6 +175,7 @@ test('getFirstExecution - days = today', () => {
 		type: ScheduleType.File,
 		times: ['18:00:00'],
 		days: [2], // today
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -175,6 +188,7 @@ test('getFirstExecution - day next week', () => {
 		type: ScheduleType.File,
 		times: ['18:00:00'],
 		days: [1],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -188,6 +202,7 @@ test('getFirstExecution - week', () => {
 		type: ScheduleType.File,
 		times: ['18:00:00'],
 		weeks: [34],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -200,6 +215,7 @@ test('getFirstExecution - next week', () => {
 		type: ScheduleType.File,
 		times: ['18:00:00'],
 		weeks: [35],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -212,6 +228,7 @@ test('getFirstExecution - last week', () => {
 		type: ScheduleType.File,
 		times: ['18:00:00'],
 		weeks: [33],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -225,6 +242,7 @@ test('getFirstExecution - dates', () => {
 		type: ScheduleType.File,
 		times: ['18:00:00'],
 		dates: [['2020-08-17', '2020-08-21']],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -237,6 +255,7 @@ test('getFirstExecution - next daterange', () => {
 		type: ScheduleType.File,
 		times: ['18:00:00'],
 		dates: [['2020-08-21', '2020-08-25']],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -251,6 +270,7 @@ test('getFirstExecution - weeks + daterange', () => {
 		times: ['18:00:00'],
 		weeks: [34, 35],
 		dates: [['2020-08-25', '2020-08-25']],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -267,6 +287,7 @@ test('getFirstExecution - weeks + daterange (2)', () => {
 			['2020-08-19', '2020-08-19'],
 			['2020-08-25', '2020-08-25'],
 		],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -280,6 +301,7 @@ test('getFirstExecution - days + daterange', () => {
 		times: ['18:00:00'],
 		dates: [['2020-08-23', '2020-08-31']],
 		days: [2],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -293,6 +315,7 @@ test('getFirstExecution - days + daterange (2)', () => {
 		times: ['18:00:00'],
 		dates: [['2020-09-20', '2020-10-04']],
 		days: [2],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -306,6 +329,7 @@ test('getFirstExecution - days + weeks', () => {
 		times: ['18:00:00'],
 		weeks: [35], // next week
 		days: [2],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -323,6 +347,7 @@ test('getFirstExecution - days + weeks + dates', () => {
 			['2020-08-26', '2020-08-26'], // thursday
 			['2020-08-28', '2020-08-28'], // friday
 		],
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
@@ -336,6 +361,7 @@ test('getFirstExecution - next day, within 24hrs', () => {
 		type: ScheduleType.File,
 		times: ['13:00:00'],
 		days: [5], // friday
+		path: '',
 	}
 
 	const firstExec = getFirstExecution(element, now)
