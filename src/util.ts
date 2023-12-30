@@ -11,7 +11,10 @@ export class DateObj extends Date {
 		let ordDate = ((this.getTime() - this.getTimezoneOffset() * 60000) - (oneJan.getTime() - oneJan.getTimezoneOffset() * 60000)) / 86400000 + 1
 
 		// step 1: substract day of week from ordinal date
-		ordDate -= this.getDay()
+		// note - algo assumes monday as first day, and 1-indexed
+		const days = [7, 1, 2, 3, 4, 5, 6]
+		const dayOfWeek = days[this.getDay()]
+		ordDate -= dayOfWeek
 
 		// step 2: add 10
 		ordDate += 10

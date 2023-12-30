@@ -52,6 +52,7 @@ export class RecurrenceParser {
 					if (!executions[executionTime]) executions[executionTime] = []
 
 					executions[executionTime].push(el)
+					// console.log((el.path ?? el._id) + ' executes at ' + new Date(executionTime))
 				}
 
 				if (el.children) {
@@ -108,6 +109,7 @@ export class RecurrenceParser {
 			}
 		}
 
+		// console.log('start: ' + new Date(start))
 		return { start, end, timeline, readableTimeline }
 	}
 

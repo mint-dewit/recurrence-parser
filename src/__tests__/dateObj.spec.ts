@@ -32,8 +32,11 @@ describe('DateObj', () => {
 		d = new DateObj('2021-01-01 00:00:00')
 		expect(d.getWeek()).toEqual(53)
 
-		d = new DateObj('2021-01-03 00:00:00')
+		d = new DateObj('2021-01-04 00:00:00')
 		expect(d.getWeek()).toEqual(1)
+
+		d = new DateObj('2023-12-31 00:00:00')
+		expect(d.getWeek()).toEqual(52)
 	})
 
 	test('setWeek', () => {

@@ -3,6 +3,7 @@ import { ScheduleElement } from './interface'
 
 export function getFirstExecution (object: ScheduleElement, now: DateObj): number {
 	if (isNaN(now.valueOf())) throw new Error('Parameter now is an invalid date')
+	// console.log('getFirstExecution', now)
 	let firstDateRange: Array<DateObj>
 	let firstTime
 
@@ -30,13 +31,16 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 		}
 	}
 	let getNextWeek = () => {
-		const firstWeek = object.weeks!.find(w => w >= start.getWeek())
+		if (!object.weeks) return
+
+		const firstWeek = object.weeks.find((w) => w >= start.getWeek())
 		if (firstWeek && firstWeek > start.getWeek()) {
-			start = new DateObj().setWeek(firstWeek)
+			start = new DateObj(start).setWeek(firstWeek)
 		} else if (!firstWeek) {
+			const year = start.getFullYear()
 			start = new DateObj()
-			start.setFullYear(start.getFullYear() + 1, 0, 1)
-			start.setWeek(object.weeks![0])
+			start.setFullYear(year + 1, 0, 1)
+			start.setWeek(object.weeks[0])
 		}
 		if (firstDateRange) {
 			while (start > firstDateRange[1]) {
@@ -46,17 +50,20 @@ export function getFirstExecution (object: ScheduleElement, now: DateObj): numbe
 		}
 	}
 	let getNextDay = () => {
-		for (let day of object.days!) {
-			if (day === start.getDay()) { // first day
+		if (!object.days) return
+		console.log('parse days', object.days, start.getDay())
+		for (let iday = 0; iday < 7; iday++) {
+			// iterate over every day in the coming 7 days (incl today)
+			const day = (iday + start.getDay()) % 7
+			if (!object.days.includes(day)) continue
+
+			if (iday === 0) {
+				// today is allowed
 				break
-			} else if (day > start.getDay()) { // first day
-				const firstDay = new DateObj(start.getTime()).setWeek(start.getWeek()) // set to beginning of the week
-				firstDay.setMilliseconds((day - 1) * 86400000) // set to start of day
-				start = firstDay
-				break
-			} else if (day === 0 && 7 > start.getDay()) { // weeks treat monday as the first day
-				const firstDay = new DateObj(start.getTime()).setWeek(start.getWeek()) // set to beginning of the week
-				firstDay.setMilliseconds(6 * 86400000) // set to start of sunday
+			} else {
+				// the next allowed day is "iday" days in the future
+				const firstDay = new DateObj(start.getTime() + iday * 86400000)
+				firstDay.setHours(0, 0, 0, 0)
 				start = firstDay
 				break
 			}
