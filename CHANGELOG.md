@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.4](https://github.com/baltedewit/recurrence-parser/compare/0.5.3...0.5.4) (2023-12-30)
+
+
+### Bug Fixes
+
+* getWeek takes monday as day 1 ([2f56a64](https://github.com/baltedewit/recurrence-parser/commit/2f56a649f4fe5cf244c017b728422445a4d2b01d))
+
+
+
 ## [0.5.3](https://github.com/baltedewit/recurrence-parser/compare/0.5.2...0.5.3) (2020-10-24)
 
 
