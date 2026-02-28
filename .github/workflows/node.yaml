@@ -22,6 +22,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 24.x
+      - name: Prepare build
+        if: ${{ steps.do-publish.outputs.tag }}
+        run: |
+          npm ci
+        env:
+          CI: true
       - name: Lint
         id: do-lint
         run: |
