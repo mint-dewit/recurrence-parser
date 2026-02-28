@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { ScheduleElement2, ScheduleElementTimings } from './interface.js'
+import { ScheduleElement2, ScheduleElement2Element, ScheduleElementTimings } from './interface.js'
 import { getFirstExecution } from './resolver2.js'
 
 export interface ExecutionTimesResult {
@@ -55,4 +55,50 @@ export function scheduleToExecutionTimes<T extends object>(
 	}
 
 	return { executions, errors }
+}
+
+export function scheduleToFirstOrderedExecution<T extends object>(
+	schedule: Array<ScheduleElement2<T>>,
+	datetime = Date.now(),
+): { executions: Record<string, number>; time: number; order: { _id: string; content: T }[]; errors: string[] } {
+	const executionResult = scheduleToExecutionTimes(schedule, datetime)
+
+	const contentMap = new Map<string, T>()
+	const recurseElement = (elements: ScheduleElement2<T>[]) => {
+		for (const el of elements) {
+			if ('content' in el) {
+				contentMap.set(el._id, el.content)
+			}
+
+			if ('children' in el) {
+				recurseElement(el.children)
+			}
+		}
+	}
+	recurseElement(schedule)
+
+	const timeToIds: Record<number, string[]> = {}
+	for (const [id, t] of Object.entries(executionResult.executions)) {
+		if (!timeToIds[t]) {
+			timeToIds[t] = []
+		}
+		timeToIds[t].push(id)
+	}
+	const timeToContent: Record<number, ScheduleElement2Element<T>[]> = Object.fromEntries(
+		Object.entries(timeToIds)
+			.map(([t, ids]) => [
+				t,
+				ids.map((id) => ({ _id: id, content: contentMap.get(id) })).filter((n) => n.content),
+			])
+			.filter(([_, content]) => content.length),
+	)
+	const firstContentTs = parseInt(Object.keys(timeToContent).reduce((a, b) => (a < b ? a : b)))
+
+	return {
+		executions: executionResult.executions,
+		errors: executionResult.errors,
+
+		time: firstContentTs,
+		order: timeToContent[firstContentTs],
+	}
 }

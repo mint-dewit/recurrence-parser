@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { ScheduleElement2 } from '../interface.js'
-import { scheduleToExecutionTimes } from '../newParser.js'
+import { scheduleToExecutionTimes, scheduleToFirstOrderedExecution } from '../newParser.js'
 
 describe('default schedule', () => {
 	const schedule: Array<ScheduleElement2<{ path: string }>> = [
@@ -60,7 +60,7 @@ describe('default schedule', () => {
 	]
 
 	test('min schedule', () => {
-		const result = scheduleToExecutionTimes(schedule, new Date('2020-8-19 10:00:00').getTime())
+		const result = scheduleToFirstOrderedExecution(schedule, new Date('2020-8-19 10:00:00').getTime())
 
 		expect(result.errors).toHaveLength(0)
 		expect(result.executions).toEqual({
@@ -74,6 +74,27 @@ describe('default schedule', () => {
 			special: new Date('2020-8-20 15:00:00').getTime(),
 			outro: new Date('2020-8-19 11:00:00').getTime(),
 		})
+
+		expect(result.time).toBe(new Date('2020-8-19 11:00:00').getTime())
+		expect(result.order).toHaveLength(4)
+		expect(result.order.map((n) => ({ _id: n._id, content: n.content }))).toEqual([
+			{
+				_id: 'announce',
+				content: { path: 'clip1' },
+			},
+			{
+				_id: 'commercials-clip2',
+				content: { path: 'folderA/clip2' },
+			},
+			{
+				_id: 'programmes',
+				content: { path: 'folderB' },
+			},
+			{
+				_id: 'outro',
+				content: { path: 'clip2' },
+			},
+		])
 	})
 	test('time based entry', () => {
 		const result = scheduleToExecutionTimes(schedule, new Date('2020-8-19 14:00:00').getTime())
