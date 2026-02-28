@@ -10,6 +10,9 @@
 		"name": "Mint de Wit"
 	},
 	"homepage": "https://github.com/mint-dewit/recurrence-parser#readme",
+	"repository": {
+		"url": "https://github.com/mint-dewit/recurrence-parser.git"
+	},
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
 		"clean": "rimraf --glob **/dist",
