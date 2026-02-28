@@ -18,7 +18,7 @@ export default defineConfig(
 			nodePlugin.configs['flat/recommended'],
 			eslintPluginPrettierRecommended,
 		],
-		files: ['**/*.ts'],
+		files: ['src/**/*.ts'],
 		languageOptions: {
 			parserOptions: {
 				project: './tsconfig.json',

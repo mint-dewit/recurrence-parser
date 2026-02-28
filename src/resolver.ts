@@ -1,15 +1,19 @@
-import { DateObj } from './util.js'
 import { ScheduleElementTimings } from './interface.js'
+import { DateObj } from './util.js'
 
 export function getFirstExecution(object: ScheduleElementTimings, now: DateObj): number {
-	if (isNaN(now.valueOf())) throw new Error('Parameter now is an invalid date')
+	if (isNaN(now.valueOf())) {
+		throw new Error('Parameter now is an invalid date')
+	}
 	let firstDateRange: Array<DateObj>
 	let firstTime
 
 	let start = now
 
 	const getNextDateRange = () => {
-		if (!object.dates) return
+		if (!object.dates) {
+			return
+		}
 		let hasFound = false
 		for (const dates of object.dates) {
 			const begin = new DateObj(dates[0])
@@ -32,7 +36,9 @@ export function getFirstExecution(object: ScheduleElementTimings, now: DateObj):
 		}
 	}
 	const getNextWeek = () => {
-		if (!object.weeks) return
+		if (!object.weeks) {
+			return
+		}
 		const firstWeek = object.weeks.find((w) => w >= start.getWeek())
 		if (firstWeek && firstWeek > start.getWeek()) {
 			start = new DateObj(start).setWeek(firstWeek)
@@ -50,10 +56,14 @@ export function getFirstExecution(object: ScheduleElementTimings, now: DateObj):
 		}
 	}
 	const getNextDay = () => {
-		if (!object.days) return
+		if (!object.days) {
+			return
+		}
 		for (let iday = 0; iday < 7; iday++) {
 			const day = (iday + start.getDay()) % 7
-			if (!object.days.includes(day)) continue
+			if (!object.days.includes(day)) {
+				continue
+			}
 
 			if (day === start.getDay()) {
 				// first day

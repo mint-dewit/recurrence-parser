@@ -1,17 +1,17 @@
 import { TimelineObject } from 'superfly-timeline'
-import { DateObj } from './util.js'
 import {
-	ScheduleElement,
-	LiveMode,
 	BuildTimelineResult,
-	ResolvedElement,
-	ScheduleType,
-	FolderSort,
 	FileElement,
-	LiveElement,
 	FolderElement,
+	FolderSort,
+	LiveElement,
+	LiveMode,
+	ResolvedElement,
+	ScheduleElement,
+	ScheduleType,
 } from './interface.js'
 import { getFirstExecution } from './resolver.js'
+import { DateObj } from './util.js'
 
 export class RecurrenceParser {
 	schedule: Array<ScheduleElement> = []
@@ -31,7 +31,7 @@ export class RecurrenceParser {
 		getMediaTime: (name: string) => number,
 		getFolderContents: (name: string) => Array<string>,
 		curDate?: () => DateObj,
-		externalLog?: (...args: any[]) => void
+		externalLog?: (...args: any[]) => void,
 	) {
 		if (curDate) {
 			this.curDate = curDate
@@ -65,7 +65,9 @@ export class RecurrenceParser {
 				const executionTime = getFirstExecution(el, start)
 
 				if (el.type !== ScheduleType.Group) {
-					if (!executions[executionTime]) executions[executionTime] = []
+					if (!executions[executionTime]) {
+						executions[executionTime] = []
+					}
 
 					executions[executionTime].push(el)
 				}
@@ -75,7 +77,7 @@ export class RecurrenceParser {
 						recurseElement(child, new DateObj(executionTime))
 					}
 				}
-			} catch (e) {
+			} catch {
 				// TODO - let the user know some part of the schedule is gone bad?
 			}
 		}
@@ -125,29 +127,34 @@ export class RecurrenceParser {
 	}
 
 	buildTimeline(element: ScheduleElement, firstExecution: number): BuildTimelineResult {
-		if (isNaN(new Date(firstExecution).valueOf()))
+		if (isNaN(new Date(firstExecution).valueOf())) {
 			return { start: Date.now(), end: Date.now(), timeline: [], readableTimeline: [] }
+		}
 		const timeline: Array<TimelineObject> = []
 		const readableTimeline: Array<ResolvedElement> = []
 		let end = firstExecution
 		const addFile = (element: FileElement) => {
 			const duration = this.getMediaDuration(element.path) * 1000
-			if (!duration) return // media file not found.
+			if (!duration) {
+				return
+			} // media file not found.
 			end += duration
 			const classes = ['PLAYOUT']
-			if (element.audio === false) classes.push('MUTED')
+			if (element.audio === false) {
+				classes.push('MUTED')
+			}
 			timeline.push({
 				id: Math.random().toString(35).substr(2, 7),
 				enable:
 					timeline.length === 0
 						? {
-							start: firstExecution,
-							duration,
-						}
+								start: firstExecution,
+								duration,
+							}
 						: {
-							start: `#${timeline[timeline.length - 1].id}.end`,
-							duration,
-						},
+								start: `#${timeline[timeline.length - 1].id}.end`,
+								duration,
+							},
 				layer: this.layer,
 				content: {
 					deviceType: 1, // casparcg
@@ -157,8 +164,8 @@ export class RecurrenceParser {
 					mixer:
 						element.audio === false
 							? {
-								volume: 0,
-							}
+									volume: 0,
+								}
 							: undefined,
 				},
 				priority: element.priority || 100,
@@ -172,10 +179,14 @@ export class RecurrenceParser {
 		}
 		const addLive = (element: LiveElement) => {
 			const duration = (element.duration || 0) * 1000
-			if (duration === 0) return // no length means do not play
+			if (duration === 0) {
+				return
+			} // no length means do not play
 			end += duration
 			const classes = ['PLAYOUT', 'LIVE']
-			if (element.audio === false) classes.push('MUTED')
+			if (element.audio === false) {
+				classes.push('MUTED')
+			}
 			const id = Math.random().toString(35).substr(2, 7)
 
 			if (this.liveMode === LiveMode.ATEM) {
@@ -184,13 +195,13 @@ export class RecurrenceParser {
 					enable:
 						timeline.length === 0
 							? {
-								start: firstExecution,
-								duration,
-							}
+									start: firstExecution,
+									duration,
+								}
 							: {
-								start: `#${timeline[timeline.length - 1].id}.end`,
-								duration,
-							},
+									start: `#${timeline[timeline.length - 1].id}.end`,
+									duration,
+								},
 					layer: this.atemLayer,
 					content: {
 						deviceType: 2,
@@ -232,13 +243,13 @@ export class RecurrenceParser {
 					enable:
 						timeline.length === 0
 							? {
-								start: firstExecution,
-								duration,
-							}
+									start: firstExecution,
+									duration,
+								}
 							: {
-								start: `#${timeline[timeline.length - 1].id}.end`,
-								duration,
-							},
+									start: `#${timeline[timeline.length - 1].id}.end`,
+									duration,
+								},
 					layer: this.layer,
 					content: {
 						deviceType: 1, // casparcg
@@ -249,8 +260,8 @@ export class RecurrenceParser {
 						mixer:
 							element.audio === false
 								? {
-									volume: 0,
-								}
+										volume: 0,
+									}
 								: undefined,
 					},
 					priority: element.priority || 100,

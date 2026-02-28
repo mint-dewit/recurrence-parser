@@ -12,7 +12,7 @@ export class DateObj extends Date {
 			(this.getTime() -
 				this.getTimezoneOffset() * 60000 -
 				(oneJan.getTime() - oneJan.getTimezoneOffset() * 60000)) /
-			86400000 +
+				86400000 +
 			1
 
 		// step 1: substract day of week from ordinal date
@@ -45,7 +45,7 @@ export class DateObj extends Date {
 				(dec31.getTime() -
 					dec31.getTimezoneOffset() * 60000 -
 					(jan1.getTime() - jan1.getTimezoneOffset() * 60000)) /
-				86400000 +
+					86400000 +
 				1
 			)
 		}
