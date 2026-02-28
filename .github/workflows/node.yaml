@@ -23,7 +23,6 @@ jobs:
         with:
           node-version: 24.x
       - name: Prepare build
-        if: ${{ steps.do-publish.outputs.tag }}
         run: |
           npm ci
         env:
