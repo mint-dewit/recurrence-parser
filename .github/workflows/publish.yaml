@@ -52,7 +52,6 @@ jobs:
       - name: Publish to NPM
         if: ${{ steps.do-publish.outputs.publish }}
         run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
           NEW_VERSION=$(node -p "require('./package.json').version")
           npm publish --tag="${{ steps.do-publish.outputs.publish }}"
           echo "**Published:** $NEW_VERSION" >> $GITHUB_STEP_SUMMARY
