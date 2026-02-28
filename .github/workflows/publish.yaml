@@ -46,7 +46,7 @@ jobs:
         if: ${{ steps.do-publish.outputs.publish }}
         run: |
           PRERELEASE_TAG=nightly-$(echo "${{ github.ref_name }}" | sed -r 's/[^a-z0-9]+/-/gi')
-          npm version prerelease --preid=$PRERELEASE_TAG
+          npm --no-git-tag-version version prerelease --preid=$PRERELEASE_TAG
         env:
           CI: true
       - name: Publish to NPM
