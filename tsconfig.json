@@ -1,7 +1,21 @@
 {
-	"extends": "./tsconfig.build.json",
-	"exclude": ["node_modules/**", "src/**/*spec.ts", "src/**/__tests__/*", "src/**/__mocks__/*"],
+	"extends": "@tsconfig/node24/tsconfig.json",
 	"compilerOptions": {
-		"types": ["jest", "node"]
-	}
+		"baseUrl": "./",
+		"erasableSyntaxOnly": true,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"outDir": "./dist",
+		"sourceMap": true
+	},
+	"exclude": [
+		"dist/**",
+		"node_modules/**"
+	],
+	"include": [
+		"src/**/*"
+	]
 }

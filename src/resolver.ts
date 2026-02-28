@@ -1,5 +1,5 @@
-import { DateObj } from './util'
-import { ScheduleElementTimings } from './interface'
+import { DateObj } from './util.js'
+import { ScheduleElementTimings } from './interface.js'
 
 export function getFirstExecution(object: ScheduleElementTimings, now: DateObj): number {
 	if (isNaN(now.valueOf())) throw new Error('Parameter now is an invalid date')

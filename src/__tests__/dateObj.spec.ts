@@ -1,4 +1,5 @@
-import { DateObj } from '../util'
+import { describe, expect, test } from 'vitest'
+import { DateObj } from '../util.js'
 
 describe('DateObj', () => {
 	test('getWeek', () => {

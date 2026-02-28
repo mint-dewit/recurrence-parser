@@ -1,6 +1,6 @@
-import { ScheduleElement2 } from './interface'
-import { getFirstExecution } from './resolver'
-import { DateObj } from './util'
+import { ScheduleElement2 } from './interface.js'
+import { getFirstExecution } from './resolver.js'
+import { DateObj } from './util.js'
 
 export interface ExecutionTimesResult {
 	executions: Record<string, number>

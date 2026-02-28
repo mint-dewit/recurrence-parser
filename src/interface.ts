@@ -1,16 +1,18 @@
 import { TimelineObject } from 'superfly-timeline'
 
-export enum ScheduleType {
-	Group = 'group',
-	Folder = 'folder',
-	File = 'file',
-	Input = 'input',
-}
+export const ScheduleType = {
+	Group: 'group',
+	Folder: 'folder',
+	File: 'file',
+	Input: 'input',
+} as const
+export type ScheduleType = (typeof ScheduleType)[keyof typeof ScheduleType]
 
-export enum LogLevel {
-	Production = 1,
-	Debug = 0,
-}
+export const LogLevel = {
+	Production: 1,
+	Debug: 0,
+} as const
+export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel]
 
 // export interface ScheduleElement extends ScheduleElementTimings {
 // 	type: ScheduleType
@@ -29,13 +31,13 @@ export enum LogLevel {
 export type ScheduleElement = GroupElement | LiveElement | FolderElement | FileElement
 
 export interface GroupElement extends ScheduleElementTimings, CommonScheduleElement {
-	type: ScheduleType.Group
+	type: typeof ScheduleType.Group
 
 	children: Array<ScheduleElement>
 }
 
 export interface LiveElement extends ScheduleElementTimings, CommonScheduleElement {
-	type: ScheduleType.Input
+	type: typeof ScheduleType.Input
 
 	input: number
 	duration: number
@@ -43,7 +45,7 @@ export interface LiveElement extends ScheduleElementTimings, CommonScheduleEleme
 }
 
 export interface FolderElement extends ScheduleElementTimings, CommonScheduleElement {
-	type: ScheduleType.Folder
+	type: typeof ScheduleType.Folder
 
 	path: string
 	sort?: FolderSort
@@ -51,7 +53,7 @@ export interface FolderElement extends ScheduleElementTimings, CommonScheduleEle
 }
 
 export interface FileElement extends ScheduleElementTimings, CommonScheduleElement {
-	type: ScheduleType.File
+	type: typeof ScheduleType.File
 	audio?: boolean
 
 	path: string
@@ -101,13 +103,16 @@ export interface ResolvedElement {
 	duration: number
 }
 
-export enum LiveMode {
-	CasparCG = 'casparcg',
-	ATEM = 'atem',
-}
-export enum FolderSort {
-	NameAsc = 'name_asc',
-	NameDesc = 'name_desc',
-	DateAsc = 'date_asc',
-	DateDesc = 'date_desc',
-}
+export const LiveMode = {
+	CasparCG: 'casparcg',
+	ATEM: 'atem',
+} as const
+export type LiveMode = (typeof LiveMode)[keyof typeof LiveMode]
+
+export const FolderSort = {
+	NameAsc: 'name_asc',
+	NameDesc: 'name_desc',
+	DateAsc: 'date_asc',
+	DateDesc: 'date_desc',
+} as const
+export type FolderSort = (typeof FolderSort)[keyof typeof FolderSort]

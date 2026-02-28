@@ -1,6 +1,7 @@
-import { getFirstExecution } from '../resolver'
-import { DateObj } from '../util'
-import { ScheduleElement, ScheduleType } from '../interface'
+import { describe, expect, test } from 'vitest'
+import { ScheduleElement, ScheduleType } from '../interface.js'
+import { getFirstExecution } from '../resolver.js'
+import { DateObj } from '../util.js'
 
 test('getFirstExecution - time today', () => {
 	const now = new DateObj('2020-08-18 15:00:00')

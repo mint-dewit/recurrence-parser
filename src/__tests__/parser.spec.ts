@@ -1,6 +1,7 @@
-import { RecurrenceParser } from '../parser'
-import { DateObj } from '../util'
-import { ScheduleElement, ScheduleType } from '../interface'
+import { describe, expect, test } from 'vitest'
+import { ScheduleElement, ScheduleType } from '../interface.js'
+import { RecurrenceParser } from '../parser.js'
+import { DateObj } from '../util.js'
 
 const media = [
 	{
@@ -70,12 +71,16 @@ const media = [
 
 function getDuration(clip: string) {
 	const c = media.find((c) => c.name === clip)
-	if (c) return c.format.duration
+	if (c) {
+		return c.format.duration
+	}
 	return 0
 }
 function getMediatime(clip: string) {
 	const c = media.find((c) => c.name === clip)
-	if (c) return c.mediaTime.getTime()
+	if (c) {
+		return c.mediaTime.getTime()
+	}
 	return 0
 }
 function getFolderContents(folder: string) {
