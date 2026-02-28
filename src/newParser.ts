@@ -1,6 +1,6 @@
-import { ScheduleElement2 } from './interface.js'
-import { getFirstExecution } from './resolver.js'
-import { DateObj } from './util.js'
+import { DateTime } from 'luxon'
+import { ScheduleElement2, ScheduleElementTimings } from './interface.js'
+import { getFirstExecution } from './resolver2.js'
 
 export interface ExecutionTimesResult {
 	executions: Record<string, number>
@@ -14,7 +14,7 @@ export function scheduleToExecutionTimes<T extends object>(
 	const executions: Record<string, number> = {}
 	const errors: string[] = []
 
-	const recurseElement = (el: ScheduleElement2<T>, start: DateObj) => {
+	const recurseElement = (el: ScheduleElement2<T>, start: DateTime, inheritTimes?: string[]) => {
 		try {
 			if (!el.triggers) {
 				el.triggers = []
@@ -23,13 +23,26 @@ export function scheduleToExecutionTimes<T extends object>(
 				el.triggers.push({})
 			}
 
-			const executionTime = el.triggers.map((t) => getFirstExecution(t, start)).reduce((a, b) => (a < b ? a : b))
+			const firstResult = el.triggers
+				.map((t) => ({
+					result: getFirstExecution(!t.times ? { ...t, times: inheritTimes } : t, start),
+					trigger: t,
+				}))
+				.filter(
+					(r): r is { result: { execution: number }; trigger: ScheduleElementTimings } =>
+						'execution' in r.result,
+				)
+				.reduce((a, b) => (a.result.execution < b.result.execution ? a : b))
 
-			executions[el._id] = executionTime
+			executions[el._id] = firstResult.result.execution
 
 			if ('children' in el) {
 				for (const child of el.children) {
-					recurseElement(child, new DateObj(executionTime))
+					recurseElement(
+						child,
+						DateTime.fromMillis(firstResult.result.execution),
+						firstResult.trigger.times ?? inheritTimes,
+					)
 				}
 			}
 		} catch (e) {
@@ -38,7 +51,7 @@ export function scheduleToExecutionTimes<T extends object>(
 	}
 
 	for (const child of schedule) {
-		recurseElement(child, new DateObj(datetime))
+		recurseElement(child, DateTime.fromMillis(datetime))
 	}
 
 	return { executions, errors }

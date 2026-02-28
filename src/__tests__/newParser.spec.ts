@@ -67,7 +67,7 @@ describe('default schedule', () => {
 			root: new Date('2020-8-19 11:00:00').getTime(),
 			announce: new Date('2020-8-19 11:00:00').getTime(),
 			commercials: new Date('2020-8-19 11:00:00').getTime(),
-			'commercials-clip1': new Date('2020-08-19T23:00:00.000Z').getTime(), // 1pm UTC => midnight CEST
+			'commercials-clip1': new Date('2020-8-20 11:00:00').getTime(),
 			'commercials-clip2': new Date('2020-8-19 11:00:00').getTime(),
 			'commercials-clip3': new Date('2020-8-19 15:00:00').getTime(),
 			programmes: new Date('2020-8-19 11:00:00').getTime(),
@@ -83,7 +83,7 @@ describe('default schedule', () => {
 			root: new Date('2020-8-19 15:00:00').getTime(),
 			announce: new Date('2020-8-19 15:00:00').getTime(),
 			commercials: new Date('2020-8-19 15:00:00').getTime(),
-			'commercials-clip1': new Date('2020-08-19T23:00:00.000Z').getTime(), // 1pm UTC => midnight CEST
+			'commercials-clip1': new Date('2020-8-20 11:00:00').getTime(),
 			'commercials-clip2': new Date('2020-8-19 15:00:00').getTime(),
 			'commercials-clip3': new Date('2020-8-19 15:00:00').getTime(),
 			programmes: new Date('2020-8-19 15:00:00').getTime(),
